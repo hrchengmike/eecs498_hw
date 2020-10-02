@@ -2,8 +2,7 @@
 from backtracking import backtracking
 
 ### newton's method of single variable function
-# EFFECTS: outputs x_vals and f_vals as list of x and f values for
-# each iteration and k, the number of iteration
+# EFFECTS: outputs x_vals ]as list of x for each iteration and k, the number of iteration
 # REQUIRES: backtracking()
 # f : objective function
 # df(x): first derivative of f
@@ -16,16 +15,17 @@ def newtonsmethod(f, df, ddf, x0, e, alpha, beta):
     k = 0 #number of iteration
     #initialize list that stores results of each iteration
     x_vals = []
-    f_vals = []
     while 1:
-        # store each x, f(x) into list
+        #print k, x, f(x)
+        # store each x into list
         x_vals.append(x)
-        f_vals.append(f(x))
 
-        dx = -df(x) / ddf(x)
-        lambda_square = df(x) * df(x) / ddf(x)
+        df_val=df(x)
+        ddf_val=ddf(x)
+        dx = -df_val / ddf_val
+        lambda_square = df_val * df_val / ddf_val
         if (lambda_square / 2 <= e):
-            return x_vals, f_vals, k
-        t = backtracking(f, df, x, alpha, beta)
+            return x_vals,  k
+        t = backtracking(f, df, x, dx, alpha, beta)
         x = x + t*dx
         k = k + 1

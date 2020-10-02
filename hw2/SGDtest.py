@@ -2,6 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 import random
+from sgd import sgd
+from gradientdescent import gradientdescent
+from newtonsmethod import newtonsmethod
 
 maxi = 10000 #this is the number of functions
 
@@ -39,18 +42,24 @@ def fsumprimeprime(x):
        sum = sum + fiprimeprime(x,i)
     return sum
 
-#this is just to see the function, you don't have to use this plotting code
-xvals = np.arange(-10, 10, 0.01) # Grid of 0.01 spacing from -10 to 10
-yvals = fsum(xvals) # Evaluate function on xvals
-plt.plot(xvals, yvals) # Create line plot with yvals against xvals
+def main():
+    start = time.clock()
+    x_vals_s = sgd (10000, fsum, fsumprime, fi, fiprime, -5, 1, 1000)
+    end = time.clock()
+    print "Time-sgd: ", end - start
 
-#this is the timing code you should use
-start = time.clock()
-print "Hello world!"
-#YOUR ALGORITHM HERE#
-end = time.clock()
-print "Time: ", end - start
+    start = time.clock()
+    [x_vals_g, k_g] = gradientdescent(fsum, fsumprime, -5, 0.0001, 0.1, 0.6)
+    end = time.clock()
+    print "Time-gradient descent: ", end - start
 
+    start = time.clock()
+    [x_vals_n, k_n] = newtonsmethod(fsum, fsumprime, fsumprimeprime, -5, 0.0001, 0.1, 0.6)
+    end = time.clock()
+    print "Time-newton's method: ", end - start
 
+    print k_g, k_n, fsum(x_vals_s[-1]), fsum(x_vals_g[-1]), fsum(x_vals_n[-1])
 
-plt.show() #show the plot
+if __name__ ==  '__main__':
+    main()
+

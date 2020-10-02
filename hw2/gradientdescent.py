@@ -2,7 +2,7 @@
 from backtracking import backtracking
 
 ### gradient descent algorithm of single variable function
-# EFFECTS: outputs x_vals and f_vals as list of x and f values for
+# EFFECTS: outputs x_vals as list of x values for
 # each iteration and k, the number of iteration
 # REQUIRES: backtracking()
 # f : objective function
@@ -13,18 +13,17 @@ from backtracking import backtracking
 
 def gradientdescent(f, df, x0, e, alpha, beta):
     x_vals = []
-    f_vals = []
     x = x0
     k = 0 #number of iteration
     while 1:
+        #print k, x, f(x)
         # store each x, f(x) into separate list
         x_vals.append(x)
-        f_vals.append(f(x))
 
         dx = -df(x)
-        t = backtracking(f, df, x, alpha, beta)
+        t = backtracking(f, df, x, dx, alpha, beta)
         x = x + t*dx
         if (abs(df(x)) <= e):
-            return x_vals, f_vals, k
+            return x_vals, k
         k = k + 1
 
