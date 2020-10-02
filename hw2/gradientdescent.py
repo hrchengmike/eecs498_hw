@@ -6,12 +6,12 @@ from backtracking import backtracking
 # each iteration and k, the number of iteration
 # REQUIRES: backtracking()
 # f : objective function
+# df(x): first derivative of f
 # x0 : starting value
-# h : step size of Symmetric Difference Quotient
 # e : tolerance
 # alpha, beta: input parameter for backtracking line search
 
-def gradientdescent(f, x0, h, e, alpha, beta):
+def gradientdescent(f, df, x0, e, alpha, beta):
     x_vals = []
     f_vals = []
     x = x0
@@ -21,10 +21,10 @@ def gradientdescent(f, x0, h, e, alpha, beta):
         x_vals.append(x)
         f_vals.append(f(x))
 
-        df = (f(x + h) - f(x - h)) / (2 * h)
-        dx = -df
-        t = backtracking(f, x, alpha, beta, h)
+        dx = -df(x)
+        t = backtracking(f, df, x, alpha, beta)
         x = x + t*dx
-        if (abs(df) <= e):
+        if (abs(df(x)) <= e):
             return x_vals, f_vals, k
         k = k + 1
+

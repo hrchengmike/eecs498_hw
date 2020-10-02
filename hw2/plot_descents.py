@@ -10,10 +10,15 @@ from newtonsmethod import newtonsmethod
 def f(x):
     return np.exp(0.5 * x + 1) + np.exp(-0.5 * x - 0.5) + 5 * x
 
-def main():
-    [x_vals_g, f_vals_g, k_g]= gradientdescent(f, 5, 0.00001, 0.0001, 0.1, 0.6)
-    [x_vals_n, f_vals_n, k_n] = newtonsmethod(f, 5, 0.00001, 0.0001, 0.1, 0.6)
+def df(x):
+    return 0.5*np.exp(0.5 * x + 1) - 0.5 * np.exp(-0.5 * x - 0.5) + 5
 
+def ddf(x):
+    return 0.25*np.exp(0.5 * x + 1) + 0.25 * np.exp(-0.5 * x - 0.5)
+
+def main():
+    [x_vals_g, f_vals_g, k_g]= gradientdescent(f, df, 5, 0.0001, 0.1, 0.6)
+    [x_vals_n, f_vals_n, k_n] = newtonsmethod(f, df, ddf, 5, 0.0001, 0.1, 0.6)
     #plot the objective function and sequence of points
     plt.figure(1)
     xvals = np.arange(-10, 10, 0.01) # Grid of 0.01 spacing from -10 to 10

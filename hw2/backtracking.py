@@ -4,11 +4,10 @@
 # f : objective function
 # x : evaluate at x
 # alpha, beta: input parameter for backtracking line search
-# h : step size of Symmetric Difference Quotient
-def backtracking(f, x, alpha, beta, h):
+# df(x): first derivative of f
+def backtracking(f, df, x, alpha, beta):
     t = 1
-    df = (f(x + h) - f(x - h)) / (2 * h)
-    dx = - df
-    while f(x + t*dx) > f(x) + alpha * t * (df * dx):
+    dx = - df(x)
+    while f(x + t*dx) > f(x) + alpha * t * (df(x) * dx):
         t = beta * t
     return t
