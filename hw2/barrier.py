@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import matplotlib.pyplot as plt
 import numpy as np
 import sys
@@ -17,9 +18,9 @@ def DrawHyperplanes(hyperplanes):
         plt.axes().arrow(x0[0,i], x0[1,i], a[0,0], a[1,0], head_width=0.05, head_length=0.1, fc='b', ec='b') #arrow with tip
         plt.plot([x0[0,i], (x0[0,i]-linescale*a[0,0])],[x0[1,i], (x0[1,i]+linescale*a[1,0])],'r')
         plt.plot([x0[0,i], (x0[0,i]+linescale*a[0,0])],[x0[1,i], (x0[1,i]-linescale*a[1,0])],'r')
-        
+
     plt.axis('equal')
-    
+
 
 #this is the main function where this script begins to execute
 if __name__ == "__main__":
@@ -32,7 +33,7 @@ if __name__ == "__main__":
     beta = 0.6; #for back-tracking line search
 
     #these are defined as [a b]
-    hyperplanes = np.mat([[0.7071,    0.7071, 1], 
+    hyperplanes = np.mat([[0.7071,    0.7071, 1],
                     [-0.7071,    0.7071, 1],
                     [0.7071,    -0.7071, 1],
                     [-0.7071,    -0.7071, 1]]);
@@ -59,7 +60,7 @@ if __name__ == "__main__":
 
     num_outer_iterations = 0;
     num_inner_iterations = 0;
-    
+
 
     ###############Start outer loop (Barrier Method)#####################
     while 1:
@@ -69,22 +70,23 @@ if __name__ == "__main__":
         num_inner_iterations = 0;
         while 1:
             num_inner_iterations = num_inner_iterations + 1;
-
-            #now start computing f' (fprime), which is the sum of the optimization force 
+            #now start computing f' (fprime), which is the sum of the optimization force
             #and the forces pushing away from the barriers
             #you will also need to compute the second derivative f'' (fprimeprime) in the same way
 
             #compute fprime for just the optimization force first
-            fprime = ###YOUR CODE HERE### 
-            
+            fprime = t * c
+
             #compute fprimeprime for just the optimization force first
-            fprimeprime = ###YOUR CODE HERE### 
+            fprimeprime = np.mat([[0, 0],[0, 0]])
 
             #compute the first and second derivatives from each hyperplane and aggregate
             for j in range(0,numplanes):
-                fprime_for_plane_j = ###YOUR CODE HERE###
+                fprime_for_plane_j = - a[:,j] / ((b[j] - a[:,j].T * x))
+                #fprime_for_plane_j = (1/(b[j] - a[:,j].T * x)) * a[:,j]
 
-                fprimeprime_for_plane_j = ###YOUR CODE HERE###
+                fprimeprime_for_plane_j = (a[:,j] * a[:,j].T) / (b[j] - a[:,j].T * x)**2
+                #fprimeprime_for_plane_j = 1/(b[j] - a[:,j].T * x)**2 * (a[:,j] * a[:,j].T)
 
                 fprime = fprime - fprime_for_plane_j; # put in the contribution of hyperplane j to fprime
                 fprimeprime = fprimeprime + fprimeprime_for_plane_j; # put in the contribution of hyperplane j to fprimeprime
@@ -92,21 +94,22 @@ if __name__ == "__main__":
             #you might want to print fprime and fprimeprime here to debug (but it will slow things down)
 
             #the step according to Newton's method (in terms of fprime and fprimeprime)
-            step = ###YOUR CODE HERE###
+            step = - np.linalg.inv(fprimeprime) * fprime
 
             #compute the Newton decrement squared (in terms of step and fprimeprime)
-            lambda2 =  ###YOUR CODE HERE###
+            lambda2 = fprime.T * np.linalg.inv(fprimeprime) * fprime
 
             #check if we've reached the Newton's method stopping condition
             #if so, break out of Newton's method
-            if(###YOUR CODE HERE###):
+            if( lambda2 / 2 <= newton_epsilon ):
                 break;
-    
-            #now we have a direction to move the point x (i.e. the Newton step) but we don't 
+
+            #now we have a direction to move the point x (i.e. the Newton step) but we don't
             #know how far to move in that direction
-            #so we look along the direction for the biggest step we can take which doesn't jump 
+            #so we look along the direction for the biggest step we can take which doesn't jump
             #over a barrier or move to a higher-cost location
             #the method we use here is called back-tracking line search
+
 
             #back-tracking line search
 
@@ -128,13 +131,15 @@ if __name__ == "__main__":
                     fnew = fnew - np.log(dist);
 
                 #use alpha and beta to generate new guess for how much to move along the step direction
-                if(pastboundary or ###YOUR CODE HERE###):  #put in the check for terminating backtracking line search
+
+                if(pastboundary or fnew > f + alpha * k * (fprime.T * step)):  #put in the check for terminating backtracking line search
                     #if we're not done
-                    k = ###YOUR CODE HERE###
+                    k = beta * k
                 else:
                     break;
-            
+
             #now we have k, the amount to scale the step
+
             x = x + k*step;
             #plot the new point for this Newton iteration in green
             plt.plot(x[0,0],x[1,0], 'gx');
@@ -142,27 +147,26 @@ if __name__ == "__main__":
         ###############End inner loop (Newton's Method)#####################
         #plot the new point for this outer loop iteration in red
         plt.plot(x[0,0],x[1,0], 'rx');
-
         print 'OUTER loop iteration %d: Number of INNER loop iterations: %d\n'%(num_outer_iterations, num_inner_iterations)
 
 
         #compute the duality gap (in terms of numplanes and t)
-        duality_gap = ###YOUR CODE HERE###
+        duality_gap = numplanes / t
 
         #If the duality gap is below our error tolerance (epsilon), we're done!
-        if duality_gap < epsilon:
+        if duality_gap < epsilon :
             break;
-    
+
         #now that we've figured out the optimal point for this amount of optimization "force," increase the optimization force to a larger value
         #compute the new optimization force magnitude
-        t = ###YOUR CODE HERE###
+        t = mu * t
 
     ###############End outer loop (Barrier Method)#####################
 
     print "The optimal point: (%f, %f)\n"%(x[0,0], x[1,0]);
     print 'Total number of outer loop iterations: %d\n'%(num_outer_iterations)
 
-    plt.show(block=False)      
+    plt.show()
     print 'Press return to exit.'
 
     sys.stdin.readline()

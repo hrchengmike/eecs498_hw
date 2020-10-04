@@ -29,8 +29,8 @@ def main():
     xvals = np.arange(-10, 10, 0.01) # Grid of 0.01 spacing from -10 to 10
     yvals = f(xvals) # Evaluate function on xvals
     plt.plot(xvals, yvals, 'k')
-    plt.plot(x_vals_g, f_vals_g, 'rx')
-    plt.plot(x_vals_n, f_vals_n, 'mx')
+    plt.plot(x_vals_g, f_vals_g, 'rx-')
+    plt.plot(x_vals_n, f_vals_n, 'mx-')
     plt.xlabel('x')
     plt.ylabel('y')
     plt.title('''Gradient descent and Newton's method: sequence of points''')
@@ -39,8 +39,8 @@ def main():
 
     # plot showing f(xi) for each iteration of both methods
     plt.figure(2)
-    plt.plot(range(k_g+1), f_vals_g, 'rx')
-    plt.plot(range(k_n+1), f_vals_n, 'mx')
+    plt.plot(range(k_g+1), f_vals_g, 'rx-')
+    plt.plot(range(k_n+1), f_vals_n, 'mx-')
     plt.xlabel('Iteration')
     plt.ylabel('f(xi)')
     plt.legend(['gradient descent','''newton's method'''])
