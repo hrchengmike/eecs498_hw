@@ -16,8 +16,8 @@ def DrawHyperplanes(hyperplanes):
         plt.plot([x0[0,i]],[x0[1,i]],'bo');
         #plt.plot([x0[0,i], (x0[0,i]+a[0])],[x0[1,i], (x0[1,i]+a[1])],'b') #arrow without a tip
         plt.axes().arrow(x0[0,i], x0[1,i], a[0,0], a[1,0], head_width=0.05, head_length=0.1, fc='b', ec='b') #arrow with tip
-        plt.plot([x0[0,i], (x0[0,i]-linescale*a[0,0])],[x0[1,i], (x0[1,i]+linescale*a[1,0])],'r')
-        plt.plot([x0[0,i], (x0[0,i]+linescale*a[0,0])],[x0[1,i], (x0[1,i]-linescale*a[1,0])],'r')
+        plt.plot([x0[0,i], (x0[0,i]-linescale*a[1,0])],[x0[1,i], (x0[1,i]+linescale*a[0,0])],'r')
+        plt.plot([x0[0,i], (x0[0,i]+linescale*a[1,0])],[x0[1,i], (x0[1,i]-linescale*a[0,0])],'r')
 
     plt.axis('equal')
 
