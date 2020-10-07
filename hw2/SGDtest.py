@@ -58,7 +58,9 @@ def main():
     end = time.clock()
     print "Time-newton's method: ", end - start
 
-    print k_g, k_n, fsum(x_vals_s[-1]), fsum(x_vals_g[-1]), fsum(x_vals_n[-1])
+    print 'SGD fsum(x*): ', fsum(x_vals_s[-1])
+    print 'Gradient Descent fsum(x*): ', fsum(x_vals_g[-1])
+    print '''Newton's method fsum(x*): ''', fsum(x_vals_n[-1])
 
 if __name__ ==  '__main__':
     main()

@@ -32,7 +32,8 @@ def main():
         x_vals_s = sgd (10000, fsum, fsumprime, fi, fiprime, -5, 1, 750)
         data_750.append(fsum(x_vals_s[-1]))
 
-    print np.mean(data_750), np.mean(data_1000), np.var(data_750), np.var(data_1000)
+    print 'SGD 750 iterations, mean: ', np.mean(data_750), 'variance: ', np.var(data_750)
+    print 'SGD 1000 iterations, mean: ', np.mean(data_1000), 'variance: ',  np.var(data_1000)
 
 if __name__ ==  '__main__':
     main()
