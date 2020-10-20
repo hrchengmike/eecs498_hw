@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 import time
 import openravepy
-import numpy
 import math
 
 if not __openravepy_build_doc__:
@@ -53,17 +52,17 @@ if __name__ == "__main__":
         z_offset = -0.5; #shift the block in z direction
 
         #generate an array of vertices in local frame
-        v = numpy.zeros((8,3))
+        v = zeros((8,3))
         m = 0
         for i in [-1, 1]:
             for j in [-1, 1]:
                 for k in [-1, 1]:
-                    v [m, :] = numpy.array([l/2*i, w/2*j, h/2*k])
+                    v [m, :] = array([l/2*i, w/2*j, h/2*k])
                     m = m + 1
 
         # For every pair of vertices, check whether the line segment is an edge,
         # if yes, push into numpy array
-        edges = numpy.zeros((48,3))
+        edges = zeros((48,3))
         m = 0
         for i in v:
             for j in v:
@@ -87,14 +86,14 @@ if __name__ == "__main__":
             # for every edge, transform from local to global coordinate and paint
             for m in range(24):
                 k = edges[2*m:2*m+2,:]+[0, 0, z_offset]
-                globalCoordinate = (numpy.dot(R, k.T)+t).T
+                globalCoordinate = (dot(R, k.T)+t).T
                 handles.append(env.drawlinestrip(points = globalCoordinate, linewidth=3.0,colors=array(((1,0,0),(1,0,0)))))
 
         #Print 35 blue points in a circle that encompasses the scene
         r= 5.0
         for i in range(35):
-            theta = i*(numpy.pi*2/35)
-            handles.append(env.plot3(points=array((r * numpy.cos(theta), r * numpy.sin(theta),0)),pointsize=15.0,colors=array((0,0,1))))
+            theta = i*(pi*2/35)
+            handles.append(env.plot3(points=array((r * cos(theta), r * sin(theta),0)),pointsize=15.0,colors=array((0,0,1))))
 
     #### END OF YOUR CODE ###
 

@@ -37,10 +37,9 @@ if __name__ == "__main__":
     # 1) get the 1st robot that is inside the loaded scene
     # 2) assign it to the variable named 'robot'
     robot = env.GetRobots()[0]
-cos
+
     # tuck in the PR2's arms for driving
     tuckarms(env,robot);
-
 
     #### YOUR CODE HERE ####
 

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import time
 import openravepy
+from astar import astar
 
 #### YOUR IMPORTS GO HERE ####
 
@@ -31,7 +32,7 @@ def ConvertPathToTrajectory(robot,path=[]):
     if not path:
         return None
     # Initialize trajectory
-    traj = RaveCreateTrajectory(env,'')    
+    traj = RaveCreateTrajectory(env,'')
     traj.Init(robot.GetActiveConfigurationSpecification())
     for i in range(0,len(path)):
         traj.Insert(i,numpy.array(path[i]))
@@ -68,9 +69,9 @@ if __name__ == "__main__":
         goalconfig = [2.6,-1.3,-pi/2]
         start = time.clock()
         #### YOUR CODE HERE ####
-
+        handles = []
         #### Implement your algorithm to compute a path for the robot's base starting from the current configuration of the robot and ending at goalconfig. The robot's base DOF have already been set as active. It may be easier to implement this as a function in a separate file and call it here.
-
+        astar(env, handles)
         #### Draw the X and Y components of the configurations explored by your algorithm
 
         path = [] #put your final path in this variable
@@ -78,7 +79,7 @@ if __name__ == "__main__":
         end = time.clock()
         print "Time: ", end - start
 
-        # Now that you have computed a path, convert it to an openrave trajectory 
+        # Now that you have computed a path, convert it to an openrave trajectory
         traj = ConvertPathToTrajectory(robot, path)
 
     # Execute the trajectory on the robot.
