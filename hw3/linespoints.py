@@ -3,6 +3,7 @@
 import time
 import openravepy
 import numpy
+import math
 
 if not __openravepy_build_doc__:
     from openravepy import *
@@ -71,7 +72,7 @@ if __name__ == "__main__":
                 if zeros == 1:
                     edges [m*2:m*2+2,:] = [i,j]
                     m = m + 1
-
+        # Generate plot for each table in the environment
         handles = []
         count = 0
         for body in env.GetBodies():
@@ -89,11 +90,12 @@ if __name__ == "__main__":
                 globalCoordinate = (numpy.dot(R, k.T)+t).T
                 handles.append(env.drawlinestrip(points = globalCoordinate, linewidth=3.0,colors=array(((1,0,0),(1,0,0)))))
 
-            # Generate array of vertices' coordinates of the rectangular box
+        #Print 35 blue points in a circle that encompasses the scene
+        r= 5.0
+        for i in range(35):
+            theta = i*(numpy.pi*2/35)
+            handles.append(env.plot3(points=array((r * numpy.cos(theta), r * numpy.sin(theta),0)),pointsize=15.0,colors=array((0,0,1))))
 
-            '''
-            handles.append(env.plot3(points=array(((-1.5,-0.5,0),(-1.5,0.5,0))),pointsize=15.0,colors=array(((0,1,0),(0,0,0)))))dd
-            '''
     #### END OF YOUR CODE ###
 
 
