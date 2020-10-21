@@ -69,12 +69,17 @@ if __name__ == "__main__":
         goalconfig = [2.6,-1.3,-pi/2]
         start = time.clock()
         #### YOUR CODE HERE ####
+        startconfig = [robot.GetTransform()[0, 3], robot.GetTransform()[1, 3], robot.GetTransform()[2, 3]]
         handles = []
         #### Implement your algorithm to compute a path for the robot's base starting from the current configuration of the robot and ending at goalconfig. The robot's base DOF have already been set as active. It may be easier to implement this as a function in a separate file and call it here.
-        astar(env, handles)
+
+        #options: 8 for 8-connected 4 for 4-connected
+        connect = 8
+        step = 0.1
+        a = astar(startconfig, goalconfig, step, connect, env, robot, handles)
         #### Draw the X and Y components of the configurations explored by your algorithm
 
-        path = [] #put your final path in this variable
+        path = a #put your final path in this variable
         #### END OF YOUR CODE ###
         end = time.clock()
         print "Time: ", end - start

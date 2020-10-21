@@ -1,5 +1,6 @@
 from bisect import bisect_left
 print "hello world"
+from numpy import *
 
 class Node:
     def __init__(self,x_in,y_in,theta_in, id_in, parentid_in):
@@ -40,4 +41,14 @@ if __name__ == "__main__":
     n4 = Node(2,0,0,3,1)
     ls_node = [n1, n2, n3, n4]
     print bisect_left(ls_node, Node(0, 0, 0, 4, 0))
-
+    list = array([])
+    list.append(array([3])
+    list.append(array([4])
+    list.append(array([3,4])
+    print list
+    print list[0]
+    print list[2]
+    print round(3.23)
+    c = arange(0,1,0.1)
+    for a in c:
+        print (a)
