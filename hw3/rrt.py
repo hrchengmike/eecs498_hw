@@ -2,8 +2,9 @@
 from numpy import *
 from math import *
 import time
-import openravepy
 import Queue
+from openravepy import *
+from rrt_template import *
 
 class node:
     def __init__ (self, q, parent=None):
@@ -15,6 +16,15 @@ class node:
     def add_child (self, child):
         assert isinstance(child, node)
         self.children.append(child)
+        T_cur = GetEETransform(node.robot, child.q)
+        if len(self.children) == 1:
+            T_par = GetEETransform(node.robot, self.q)
+            #print hstack([T_cur[0:3, 3:4].T, T_par[0:3, 3:4].T])
+            node.handles.append(node.env.drawlinestrip(points =hstack([T_cur[0:3, 3:4].T, T_par[0:3, 3:4].T]), linewidth=3.0, colors=array(((1,0,0),(0,0,1)))))
+        else:
+            T_prev = GetEETransform(node.robot, self.children[len(self.children)-2].q)
+            node.handles.append(node.env.drawlinestrip(points =hstack([T_cur[0:3, 3:4].T, T_prev[0:3, 3:4].T]), linewidth=3.0,colors=array(((1,0,0),(0,0,1)))))
+
     def __repr__(self):
         print "Configuration: ", self.q
         print "Children:"
@@ -24,24 +34,24 @@ class node:
 #returns a node of random configuration in the free space with probability (1-bias), with a probability of bias return goal node
 def random_config (env, robot, goal, bias):
     rand = random.rand()
-
+    print "rand:", rand
     #set goal for probability of bias
     if rand < bias:
         return goal
     #randomly sample in free space
     else:
+        #get joint limits and randomly sample in c-space
+        lower,upper = robot.GetActiveDOFLimits()
         while True:
-            #get joint limits and randomly sample in c-space
-            lower,upper = robot.GetActiveDOFLimits()
             q_rand = random.rand(len(lower))*(upper-lower)+lower
             # joint [4] is of S1 topology
-            q_rand[4] = -pi * 2*pi*random.rand()
-            robot.SetActiveDOFs(ndarray.tolist(q_rand))
+            q_rand[4] = -pi + 2*pi*random.rand()
+            robot.SetActiveDOFValues(q_rand)
             if not env.CheckCollision(robot):
                 return node(array(q_rand))
 
 #use BFS to find the nearest node to rand node in the tree
-def find_near(root, rand):
+def find_near(root, rand, goal):
     q = Queue.Queue()
     q.put(root)
     #stores the minimum distance from node to rand in the tree
@@ -54,6 +64,8 @@ def find_near(root, rand):
         if dist(cur, rand)< min_dist:
             min_dist_node = cur
             min_dist = dist(cur, rand)
+    if rand == goal:
+        print "min_dist_to_goal: ", min_dist
     return min_dist_node
 
 #returns the euclidean distance between two configuration
@@ -78,19 +90,20 @@ def angle_diff(a, b):
 #extend step each time towards rand until goal reached or encounter obstacle
 #if goal reached, return the last node
 #else, return false
-def connect(root, near, rand, goal, step, env, robot):
+def connect(root, near, rand, goal, step, env, robot, handles):
     cur = near
     while(True):
         new = extend(cur, rand, step)
-        if dist(new, goal) < step:
+        robot.SetActiveDOFValues(new.q)
+        if env.CheckCollision(robot):
+            return False
+        elif dist(new, goal) < step:
             cur.add_child(new)
             print "goal reached!"
             return new
         elif dist(new, rand) < step:
             cur.add_child(new)
-            return false
-        elif env.CheckCollision(robot):
-            return false
+            return False
         else:
             cur.add_child(new)
             cur = new
@@ -108,7 +121,7 @@ def dir(cur, rand):
     diff = diff/linalg.norm(diff)
     return diff
 #
-def path(cur):
+def path(root, cur):
     path = []
     while not cur.parent == root:
         ar = ndarray.tolist(cur.q)
@@ -118,12 +131,15 @@ def path(cur):
     path.reverse()
     return path
 
-def rrt(start_config, goal_config, bias, n, env, robot):
+def rrt(start_config, goal_config, bias, step, n, env, robot, handles):
+    node.handles = handles
+    node.robot = robot
+    node.env = env
     root = node(array(start_config))
     goal = node(array(goal_config))
     for k in range(n):
         rand = random_config (env, robot, goal, bias)
-        near = find_near(root, rand)
-        re = connect(root, near, rand, goal, step, env, robot)
-        if not re == false:
-            return path(root, cur)
+        near = find_near(root, rand, goal)
+        last = connect(root, near, rand, goal, step, env, robot, handles)
+        if not last == False:
+            return path(root, last)

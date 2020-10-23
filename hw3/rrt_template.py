@@ -41,8 +41,8 @@ def tuckarms(env,robot):
     waitrobot(robot)
 
 def GetEETransform(robot,activedofvalues=None):
-    if activedofvalues != None:
-        robot.SetActiveDOFValues(activedofvalues);
+    #if activedofvalues != None:
+    robot.SetActiveDOFValues(activedofvalues)
     manip = robot.GetActiveManipulator()
     return manip.GetEndEffectorTransform()
 
@@ -79,13 +79,15 @@ if __name__ == "__main__":
         goalconfig = [0.5, 0.33, -1.548, 1.557, -1.32, -0.1928]
         start = time.clock()
         ### YOUR CODE HERE ###
-        print "distance start and goal", dist(node(startconfig), node(goalconfig))
+        handles = []
         bias = 0.1
+        step = 0.05
         n = 10000
-        path_rrt = rrt(startconfig, goalconfig, bias, n, env, robot)
         lower,upper = robot.GetActiveDOFLimits()
         print lower
         print upper
+        path_rrt = rrt(startconfig, goalconfig, bias, step, n, env, robot, handles)
+
         ### Plan, draw, and execute a path from the current configuration of the left arm to the goalconfig
 
     path = path_rrt #put your final path in this variable
