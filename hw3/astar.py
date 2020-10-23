@@ -31,16 +31,17 @@ def dist(a, b):
     return sqrt((a.x - b.x)**2 + (a.y - b.y)**2)
 
 def path(id, tree, handles, env):
-    path = array([])
+    path = []
     cur = tree[id]
     while not cur.id == 0:
-        ar = array([cur.x, cur.y, cur.theta])
-        concatenate((ar, path), axis=0)
+        ar =[cur.x, cur.y, cur.theta]
+        path.append(ar)
         #path.append([cur.x, cur.y, cur.theta])
         prev = cur
         cur = tree [cur.parentid]
         handles.append(env.plot3(points=array((cur.x, cur.y, 0.01)),pointsize=12.0,colors=array((0,0,0))))
         handles.append(env.drawlinestrip(points = array([[prev.x, prev.y, 0.01],[cur.x, cur.y, 0.01]]), linewidth=7.0,colors=array(((0,0,0),(0,0,0)))))
+    path.reverse()
     return path
 
 
