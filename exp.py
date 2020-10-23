@@ -1,6 +1,11 @@
 from bisect import bisect_left
 print "hello world"
 from numpy import *
+# some_file.py
+import sys
+# insert at 1, 0 is the script path (or '' in REPL)
+sys.path.insert(1, 'hw3')
+from rrt import *
 
 class Node:
     def __init__(self,x_in,y_in,theta_in, id_in, parentid_in):
@@ -27,6 +32,14 @@ def index(a, x):
         return i
     raise ValueError
 
+def angle_diff(a, b):
+    diff = a - b
+    while(diff < -pi):
+        diff = diff + 2*pi
+    while(diff > pi ):
+        diff = diff - 2*pi
+    return diff
+
 if __name__ == "__main__":
     dict = {(1.22, 3.222):1, (round(3.23424141, 5), 3.22):1}
     print type(1.22)
@@ -41,14 +54,31 @@ if __name__ == "__main__":
     n4 = Node(2,0,0,3,1)
     ls_node = [n1, n2, n3, n4]
     print bisect_left(ls_node, Node(0, 0, 0, 4, 0))
+    '''
     list = array([])
-    list.append(array([3])
-    list.append(array([4])
-    list.append(array([3,4])
+    list.append(array([3]))
+    list.append(array([4]))
+    list.append(array([3,4]))
     print list
     print list[0]
     print list[2]
+    '''
     print round(3.23)
     c = arange(0,1,0.1)
     for a in c:
         print (a)
+    print "starting diff"
+    a = angle_diff(pi, -3)
+    print a
+    root = node(array([1, 2, 3, 2, pi/2,  2]))
+    n1 = node(array([3, 4, 5, 4, -pi/2-0.00001, 1]))
+    print dir(root, n1)
+    a = array([1, 1, 1, 1, 1, 1])
+    print a*2 + dir(root, n1)
+    a = array([[1,2],[3,4]])
+    b = a + 4
+    c = b + 4
+    d = c + 4
+    print random.rand()
+    print vstack([array([]), hstack([c,d])])
+

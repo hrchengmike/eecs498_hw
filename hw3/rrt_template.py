@@ -3,6 +3,7 @@
 import time
 import openravepy
 import numpy
+from rrt import *
 
 #### YOUR IMPORTS GO HERE ####
 
@@ -23,7 +24,7 @@ def ConvertPathToTrajectory(robot,path=[]):
     if not path:
         return None
     # Initialize trajectory
-    traj = RaveCreateTrajectory(env,'')	
+    traj = RaveCreateTrajectory(env,'')
     traj.Init(robot.GetActiveConfigurationSpecification())
     for i in range(0,len(path)):
         traj.Insert(i,numpy.array(path[i]))
@@ -35,7 +36,7 @@ def tuckarms(env,robot):
     with env:
         jointnames = ['torso_lift_joint','l_shoulder_lift_joint','l_elbow_flex_joint','l_wrist_flex_joint','r_shoulder_lift_joint','r_elbow_flex_joint','r_wrist_flex_joint']
         robot.SetActiveDOFs([robot.GetJoint(name).GetDOFIndex() for name in jointnames])
-        robot.SetActiveDOFValues([0.24,1.29023451,-2.32099996,-0.69800004,1.27843491,-2.32100002,-0.69799996]);        
+        robot.SetActiveDOFValues([0.24,1.29023451,-2.32099996,-0.69800004,1.27843491,-2.32100002,-0.69799996]);
         robot.GetController().SetDesired(robot.GetDOFValues());
     waitrobot(robot)
 
@@ -54,7 +55,7 @@ if __name__ == "__main__":
     collisionChecker = RaveCreateCollisionChecker(env,'ode')
     env.SetCollisionChecker(collisionChecker)
 
-    env.Reset()        
+    env.Reset()
     # load a scene from environment XML file
     env.Load('pr2table.env.xml')
     time.sleep(0.1)
@@ -65,27 +66,34 @@ if __name__ == "__main__":
 
     # tuck in the PR2's arms and raise torso
     tuckarms(env,robot);
-  
+
     #set start config
     robot.SetActiveManipulator('leftarm')
     jointnames =['l_shoulder_pan_joint','l_shoulder_lift_joint','l_elbow_flex_joint','l_upper_arm_roll_joint','l_forearm_roll_joint','l_wrist_flex_joint']
-    robot.SetActiveDOFs([robot.GetJoint(name).GetDOFIndex() for name in jointnames])      
+    robot.SetActiveDOFs([robot.GetJoint(name).GetDOFIndex() for name in jointnames])
     startconfig = [0.5, 1.19, -1.548, 1.557, -1.32, -0.1928]
     robot.SetActiveDOFValues(startconfig);
     robot.GetController().SetDesired(robot.GetDOFValues());
     waitrobot(robot)
     with env:
         goalconfig = [0.5, 0.33, -1.548, 1.557, -1.32, -0.1928]
-    start = time.clock()
+        start = time.clock()
         ### YOUR CODE HERE ###
+        print "distance start and goal", dist(node(startconfig), node(goalconfig))
+        bias = 0.1
+        n = 10000
+        path_rrt = rrt(startconfig, goalconfig, bias, n, env, robot)
+        lower,upper = robot.GetActiveDOFLimits()
+        print lower
+        print upper
         ### Plan, draw, and execute a path from the current configuration of the left arm to the goalconfig
-    
-    path = [] #put your final path in this variable
+
+    path = path_rrt #put your final path in this variable
         #### END OF YOUR CODE ###
     end = time.clock()
     print "Time: ", end - start
 
-        # Now that you have computed a path, convert it to an openrave trajectory 
+        # Now that you have computed a path, convert it to an openrave trajectory
     traj = ConvertPathToTrajectory(robot, path)
 
     # Execute the trajectory on the robot.
