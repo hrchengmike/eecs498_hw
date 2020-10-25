@@ -84,8 +84,6 @@ if __name__ == "__main__":
         step = 0.05
         n = 10000
         lower,upper = robot.GetActiveDOFLimits()
-        print lower
-        print upper
         path_rrt = rrt(startconfig, goalconfig, bias, step, n, env, robot, handles)
 
         ### Plan, draw, and execute a path from the current configuration of the left arm to the goalconfig
