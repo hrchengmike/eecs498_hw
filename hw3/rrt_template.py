@@ -82,9 +82,10 @@ if __name__ == "__main__":
         handles = []
         bias = 0.1
         step = 0.05
-        n = 10000
+        n = 10000 #max iteration of RRT
+        it = 150 #iteration number of short cut smoothing
         lower,upper = robot.GetActiveDOFLimits()
-        path_rrt = rrt(startconfig, goalconfig, bias, step, n, env, robot, handles)
+        path_rrt = rrt(startconfig, goalconfig, bias, step, n, it, env, robot, handles)
 
         ### Plan, draw, and execute a path from the current configuration of the left arm to the goalconfig
 
@@ -101,6 +102,5 @@ if __name__ == "__main__":
         robot.GetController().SetPath(traj)
 
     waitrobot(robot)
-
     raw_input("Press enter to exit...")
     env.Destroy()

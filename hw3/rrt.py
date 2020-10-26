@@ -131,6 +131,28 @@ def connect(near, rand, goal, step, env, robot, handles):
             #print "new node extended, q:", new.q
             cur = new
 
+#shortcut variation of connect.
+#from start node, extend step each time towards end until goal reached or encounter obstacle
+#REQUIRES: start node, goal node, step size
+#EFFECTS: if no obstacle encountered along the path, return the whole list of joint space coordinates, including start and goal, else, return false
+def connect_shortcut(start, goal, step):
+    cur = start
+    list = [ndarray.tolist(start.q)]
+    while(True):
+        new = extend(cur, goal, step)
+        node.robot.SetActiveDOFValues(new.q)
+        if node.env.CheckCollision(node.robot):
+            #print "connect stopped, new node in collision"
+            return False
+        elif dist(new, goal) < step:
+            list.append(ndarray.tolist(new.q))
+            print "goal reached!"
+            return list
+        else:
+            list.append(ndarray.tolist(new.q))
+            #print "new node extended, q:", new.q
+            cur = new
+
 # extends step from near to rand, generate node new(initialize config, parent)
 def extend(cur, rand, step):
     new_q = cur.q + step * dir(cur, rand)
@@ -154,7 +176,36 @@ def path(root, cur):
     path.reverse()
     return path
 
-def rrt(start_config, goal_config, bias, step, n, env, robot, handles):
+#short cut smoothing takes a list of path and outputs a list of smoother path
+def short_cut_smoothing(path, it, step):
+    path_return = []
+    path_return.extend(path)
+    for i in range(it):
+        length = len(path_return)
+        # find indices of two distinct points on the path
+        start_in = random.randint(0, length - 2)
+        end_in = random.randint(start_in + 1, length - 1)
+        #Attempt to short cut for the waypoints between start and end
+        print "path length: ", len(path)
+        print "path return length: ", len(path_return)
+        start_node = node(array(path_return[start_in]))
+        end_node = node(array(path_return[end_in]))
+        list = connect_shortcut(start_node, end_node, step)
+        if not list == False:
+            path_return[start_in:end_in + 1] = list
+    return path_return
+
+#draws the end effector path given a list of joint space configurations
+# color is passed in as tuple, eg: red:(1, 0, 0)
+# line_width in float point number(3.0 is reasonable)
+def draw_path(path, env, robot, color, handles, line_width):
+    for i in range(len(path)-1):
+        T_cur = GetEETransform(robot, array(path[i]))
+        T_next = GetEETransform(robot, array(path[i+1]))
+        handles.append(env.drawlinestrip(points =hstack([T_cur[0:3, 3:4].T, T_next[0:3, 3:4].T]), linewidth=line_width, colors=array((color,color))))
+
+#it is the number of iteration of short cut smoothing
+def rrt(start_config, goal_config, bias, step, n, it, env, robot, handles):
     node.handles = handles
     node.robot = robot
     node.env = env
@@ -165,6 +216,9 @@ def rrt(start_config, goal_config, bias, step, n, env, robot, handles):
         near = find_near(root, rand, goal)
         last = connect(near, rand, goal, step, env, robot, handles)
         if not last == False:
-            return path(root, last)
-
+            raw_path = path(root, last)
+            draw_path(raw_path, env, robot, (1, 0, 0), handles, 3.0)
+            smoothed_path = short_cut_smoothing(raw_path, it, step)
+            draw_path(smoothed_path, env, robot, (0, 0, 1), handles, 3.0)
+            return smoothed_path
 

@@ -74,7 +74,7 @@ if __name__ == "__main__":
         #### Implement your algorithm to compute a path for the robot's base starting from the current configuration of the robot and ending at goalconfig. The robot's base DOF have already been set as active. It may be easier to implement this as a function in a separate file and call it here.
 
         #options: 8 for 8-connected 4 for 4-connected
-        connect = 4
+        connect = 8
         step = 0.1
         a = astar(startconfig, goalconfig, step, connect, env, robot, handles)
         #### Draw the X and Y components of the configurations explored by your algorithm
