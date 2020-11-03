@@ -57,13 +57,13 @@ def view_pc(pcs, fig=None, color='b', marker='o'):
     # Start plt in interactive mode
     ax = []
     if fig == None:
-        plt.ion()
+        #plt.ion()
         # Make a 3D figure
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
     else:
         ax = fig.gca()
-        ax.hold()
+        #ax.hold()
 
     # Draw each point cloud
     for pc, c, m in zip(pcs, color, marker):
@@ -81,9 +81,10 @@ def view_pc(pcs, fig=None, color='b', marker='o'):
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
     ax.set_zlabel('Z')
-    ax.hold()
+    #ax.hold()
     # Update the figure
-    plt.show()
+    #plt.ioff()
+    #plt.show()
 
     # Return a handle to the figure so the user can make adjustments
     return fig
@@ -125,7 +126,7 @@ def draw_plane(fig, normal, pt, color=(0.1, 0.2, 0.5, 0.3), length=[-1, 1], widt
 
     # Plot the surface
     ax = fig.gca()
-    ax.hold()
+    #ax.hold()
     ax.plot_surface(x, y, z, color=color)
     return fig
 

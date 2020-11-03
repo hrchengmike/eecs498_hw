@@ -3,7 +3,7 @@
 import utils
 import csv
 import numpy
-
+import matplotlib.pyplot as plt
 def main():
 
     #load in the point cloud
@@ -27,7 +27,7 @@ def main():
     #draw a plane
     fig = utils.draw_plane(fig, numpy.matrix([0,0,1]).T, numpy.matrix([0.5, 0.5, 0.5]).T, (0.1, 0.7, 0.1, 0.5), [-1, 1], [-1, 1])
     #utils.view_pc([mug_pc, pc_noise], ['b', 'r'], ['o', '^'])
-
+    plt.show()
     raw_input("Press enter to end:")
 
 
