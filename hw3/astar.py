@@ -27,6 +27,14 @@ class Node:
         self.h = dist(self, self.goal)
         self.f = self.g + self.h
 
+def angle_diff(a, b):
+    diff = a - b
+    while(diff < -pi):
+        diff = diff + 2*pi
+    while(diff > pi ):
+        diff = diff - 2*pi
+    return diff
+
 def dist(a, b):
     return sqrt((a.x - b.x)**2 + (a.y - b.y)**2)
 
@@ -34,13 +42,14 @@ def path(id, tree, handles, env):
     path = []
     cur = tree[id]
     while not cur.id == 0:
+        print "g_cost", cur.g
         ar =[cur.x, cur.y, cur.theta]
         path.append(ar)
         #path.append([cur.x, cur.y, cur.theta])
         prev = cur
         cur = tree [cur.parentid]
-        handles.append(env.plot3(points=array((cur.x, cur.y, 0.01)),pointsize=12.0,colors=array((0,0,0))))
-        handles.append(env.drawlinestrip(points = array([[prev.x, prev.y, 0.01],[cur.x, cur.y, 0.01]]), linewidth=7.0,colors=array(((0,0,0),(0,0,0)))))
+        handles.append(env.plot3(points=array((cur.x, cur.y, 3)),pointsize=12.0,colors=array((0,0,0))))
+        handles.append(env.drawlinestrip(points = array([[prev.x, prev.y, 3],[cur.x, cur.y, 3]]), linewidth=7.0,colors=array(((0,0,0),(0,0,0)))))
     path.reverse()
     return path
 
@@ -63,9 +72,9 @@ def kids(cur, connect, step, handles, robot, env):
             if not env.CheckCollision(robot):
                 kid = Node(x, y, theta, 0, 0)
                 kids.append(kid)
-                handles.append(env.plot3(points=array((x, y, 0.01)),pointsize=10.0,colors=array((0,0,1))))
+                handles.append(env.plot3(points=array((x, y, 3)),pointsize=10.0,colors=array((0,0,1))))
             else:
-                handles.append(env.plot3(points=array((x, y, 0.01)),pointsize=10.0,colors=array((1,0,0))))
+                handles.append(env.plot3(points=array((x, y, 3)),pointsize=10.0,colors=array((1,0,0))))
     if connect == 8:
          for theta in arange(pi/4, 2*pi, pi/2):
             x = cur.x + step * sqrt(2) * cos(theta)
@@ -78,9 +87,9 @@ def kids(cur, connect, step, handles, robot, env):
             if not env.CheckCollision(robot):
                 kid = Node(x, y, theta, 0, 0)
                 kids.append(kid)
-                handles.append(env.plot3(points=array((x, y, 0.01)),pointsize=10.0,colors=array((0,0,1))))
+                handles.append(env.plot3(points=array((x, y, 3)),pointsize=10.0,colors=array((0,0,1))))
             else:
-                handles.append(env.plot3(points=array((x, y, 0.01)),pointsize=10.0,colors=array((1,0,0))))
+                handles.append(env.plot3(points=array((x, y, 3)),pointsize=10.0,colors=array((1,0,0))))
     if not (connect == 4 or connect == 8):
         print "Wrong connect input, input 4 for 4-connected and 8 for 8-connected"
     return kids

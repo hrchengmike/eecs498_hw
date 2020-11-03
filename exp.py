@@ -5,7 +5,7 @@ from numpy import *
 import sys
 # insert at 1, 0 is the script path (or '' in REPL)
 sys.path.insert(1, 'hw3')
-from rrt import *
+#from rrt import *
 
 class Node:
     def __init__(self,x_in,y_in,theta_in, id_in, parentid_in):
@@ -63,6 +63,7 @@ if __name__ == "__main__":
     print list[0]
     print list[2]
     '''
+    '''
     print round(3.23)
     c = arange(0,1,0.1)
     for a in c:
@@ -81,4 +82,11 @@ if __name__ == "__main__":
     d = c + 4
     print random.rand()
     print vstack([array([]), hstack([c,d])])
-
+    '''
+    list = [1, 2, 3, 4, 5]
+    print list
+    ls = [0, 7, 8]
+    list[2:3] = ls
+    print list
+    list[1:3] = ls
+    print list

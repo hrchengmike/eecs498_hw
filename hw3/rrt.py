@@ -19,10 +19,10 @@ class node:
         T_cur = GetEETransform(node.robot, child.q)
         if len(self.children) == 1:
             T_par = GetEETransform(node.robot, self.q)
-            node.handles.append(node.env.drawlinestrip(points =hstack([T_cur[0:3, 3:4].T, T_par[0:3, 3:4].T]), linewidth=3.0, colors=array(((1,0,0),(0,0,1)))))
+            #node.handles.append(node.env.drawlinestrip(points =hstack([T_cur[0:3, 3:4].T, T_par[0:3, 3:4].T]), linewidth=3.0, colors=array(((1,0,0),(0,0,1)))))
         else:
             T_prev = GetEETransform(node.robot, self.children[len(self.children)-2].q)
-            node.handles.append(node.env.drawlinestrip(points =hstack([T_cur[0:3, 3:4].T, T_prev[0:3, 3:4].T]), linewidth=3.0,colors=array(((1,0,0),(0,0,1)))))
+            #node.handles.append(node.env.drawlinestrip(points =hstack([T_cur[0:3, 3:4].T, T_prev[0:3, 3:4].T]), linewidth=3.0,colors=array(((1,0,0),(0,0,1)))))
 
     def __repr__(self):
         print "Configuration: ", self.q
@@ -199,10 +199,11 @@ def short_cut_smoothing(path, it, step):
 # color is passed in as tuple, eg: red:(1, 0, 0)
 # line_width in float point number(3.0 is reasonable)
 def draw_path(path, env, robot, color, handles, line_width):
-    for i in range(len(path)-1):
+    for i in range(len(path)):
         T_cur = GetEETransform(robot, array(path[i]))
-        T_next = GetEETransform(robot, array(path[i+1]))
-        handles.append(env.drawlinestrip(points =hstack([T_cur[0:3, 3:4].T, T_next[0:3, 3:4].T]), linewidth=line_width, colors=array((color,color))))
+        #T_next = GetEETransform(robot, array(path[i+1]))
+        #handles.append(env.drawlinestrip(points =hstack([T_cur[0:3, 3:4].T, T_next[0:3, 3:4].T]), linewidth=line_width, colors=array((color,color))))
+        handles.append(env.plot3(points=T_cur[0:3, 3:4].T,pointsize=3.0,colors=color))
 
 #it is the number of iteration of short cut smoothing
 def rrt(start_config, goal_config, bias, step, n, it, env, robot, handles):

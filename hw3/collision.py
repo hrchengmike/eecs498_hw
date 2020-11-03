@@ -48,7 +48,7 @@ if __name__ == "__main__":
         T[0:3,3:4]=np.array([[0],[0],[0.01]])
         robot.SetTransform(T)
         print "Robot in collision with environment?", env.CheckCollision(robot)
-        robot.get
+
         #Set all 7 DOF of right arm to active
         #joint names are obtained from
         #openrave-robot.py robots/pr2-beta-static.zae --info joints
@@ -61,6 +61,7 @@ if __name__ == "__main__":
         print "Robot in collision with environment?", env.CheckCollision(robot)
         robot.GetController().SetDesired(robot.GetDOFValues());
     waitrobot(robot)
+
 
     #### END OF YOUR CODE ###
 
