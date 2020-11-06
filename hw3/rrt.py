@@ -19,10 +19,10 @@ class node:
         T_cur = GetEETransform(node.robot, child.q)
         if len(self.children) == 1:
             T_par = GetEETransform(node.robot, self.q)
-            node.handles.append(node.env.drawlinestrip(points =hstack([T_cur[0:3, 3:4].T, T_par[0:3, 3:4].T]), linewidth=3.0, colors=array(((1,0,0),(0,0,1)))))
+            #node.handles.append(node.env.drawlinestrip(points =hstack([T_cur[0:3, 3:4].T, T_par[0:3, 3:4].T]), linewidth=3.0, colors=array(((1,0,0),(0,0,1)))))
         else:
             T_prev = GetEETransform(node.robot, self.children[len(self.children)-2].q)
-            node.handles.append(node.env.drawlinestrip(points =hstack([T_cur[0:3, 3:4].T, T_prev[0:3, 3:4].T]), linewidth=3.0,colors=array(((1,0,0),(0,0,1)))))
+            #node.handles.append(node.env.drawlinestrip(points =hstack([T_cur[0:3, 3:4].T, T_prev[0:3, 3:4].T]), linewidth=3.0,colors=array(((1,0,0),(0,0,1)))))
 
     def __repr__(self):
         print "Configuration: ", self.q
@@ -73,8 +73,8 @@ def find_near(root, rand, goal):
             if dist(cur, rand)< min_dist:
                 min_dist_node = cur
                 min_dist = dist(cur, rand)
-    if rand == goal:
-        print "min_dist_to_goal: ", min_dist
+    #if rand == goal:
+       #print "min_dist_to_goal: ", min_dist
     return min_dist_node
 
 #returns the euclidean distance between two configuration
@@ -120,7 +120,7 @@ def connect(near, rand, goal, step, env, robot, handles):
             return False
         elif dist(new, goal) < step:
             cur.add_child(new)
-            print "goal reached!"
+            #print "goal reached!"
             return new
         elif dist(new, rand) < step:
             cur.add_child(new)
@@ -146,7 +146,7 @@ def connect_shortcut(start, goal, step):
             return False
         elif dist(new, goal) < step:
             list.append(ndarray.tolist(new.q))
-            print "goal reached!"
+            #print "goal reached!"
             return list
         else:
             list.append(ndarray.tolist(new.q))
@@ -186,8 +186,8 @@ def short_cut_smoothing(path, it, step):
         start_in = random.randint(0, length - 2)
         end_in = random.randint(start_in + 1, length - 1)
         #Attempt to short cut for the waypoints between start and end
-        print "path length: ", len(path)
-        print "path return length: ", len(path_return)
+        #print "path length: ", len(path)
+        #print "path return length: ", len(path_return)
         start_node = node(array(path_return[start_in]))
         end_node = node(array(path_return[end_in]))
         list = connect_shortcut(start_node, end_node, step)

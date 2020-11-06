@@ -75,32 +75,39 @@ if __name__ == "__main__":
     robot.SetActiveDOFValues(startconfig);
     robot.GetController().SetDesired(robot.GetDOFValues());
     waitrobot(robot)
-    with env:
-        goalconfig = [0.5, 0.33, -1.548, 1.557, -1.32, -0.1928]
-        start = time.clock()
-        ### YOUR CODE HERE ###
-        handles = []
-        bias = 0.1
-        step = 0.05
-        n = 10000 #max iteration of RRT
-        it = 150 #iteration number of short cut smoothing
-        lower,upper = robot.GetActiveDOFLimits()
-        path_rrt = rrt(startconfig, goalconfig, bias, step, n, it, env, robot, handles)
+    result = []
+    for i in range(100):
+        with env:
+            goalconfig = [0.5, 0.33, -1.548, 1.557, -1.32, -0.1928]
+            start = time.clock()
+            ### YOUR CODE HERE ###
+            handles = []
+            bias = 0.1
+            step = 0.05
+            n = 10000 #max iteration of RRT
+            it = 150 #iteration number of short cut smoothing
+            lower,upper = robot.GetActiveDOFLimits()
+            path_rrt = rrt(startconfig, goalconfig, bias, step, n, it, env, robot, handles)
 
-        ### Plan, draw, and execute a path from the current configuration of the left arm to the goalconfig
+            ### Plan, draw, and execute a path from the current configuration of the left arm to the goalconfig
 
-    path = path_rrt #put your final path in this variable
-        #### END OF YOUR CODE ###
-    end = time.clock()
-    print "Time: ", end - start
-
+        path = path_rrt #put your final path in this variable
+            #### END OF YOUR CODE ###
+        end = time.clock()
+        print "Time: ", end - start
+        result.append(end-start)
+        print "trial: ", i
+        print "full result:", result
+        print "max time:", max(result)
+        print "min time:", min(result)
+        print "mean time:", mean(result)
         # Now that you have computed a path, convert it to an openrave trajectory
-    traj = ConvertPathToTrajectory(robot, path)
+        traj = ConvertPathToTrajectory(robot, path)
 
-    # Execute the trajectory on the robot.
-    if traj != None:
-        robot.GetController().SetPath(traj)
+        # Execute the trajectory on the robot.
+        if traj != None:
+            robot.GetController().SetPath(traj)
 
-    waitrobot(robot)
+        waitrobot(robot)
     raw_input("Press enter to exit...")
     env.Destroy()
