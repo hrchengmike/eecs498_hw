@@ -54,15 +54,15 @@ def find_near(root, rand, goal):
     q.put(root)
     #stores the minimum distance from node to rand in the tree
     if rand == goal:
-        min_dist = dist_w(root, rand)
+        min_dist = dist(root, rand)
         min_dist_node = root
         while not q.empty():
             cur = q.get()
             for child in cur.children:
                 q.put(child)
-            if dist_w(cur, rand)< min_dist:
+            if dist(cur, rand)< min_dist:
                 min_dist_node = cur
-                min_dist = dist_w(cur, rand)
+                min_dist = dist(cur, rand)
     else:
         min_dist = dist(root, rand)
         min_dist_node = root
