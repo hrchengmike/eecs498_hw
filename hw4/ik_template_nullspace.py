@@ -113,7 +113,10 @@ if __name__ == "__main__":
         handles.append(env.plot3(points=array(target), pointsize=15.0, colors=array((0,0,1)) ))
         e = 0.01 # euclidean distance between end effector and goal before stop
         step = 0.2 #the max norm of delta q of each iteration
+        beta = 0.1 # coefficient for secondary task
         lower,upper = robot.GetActiveDOFLimits()
+        joint_repulsive = numpy.zeros((1,robot.GetActiveDOF()))
+        I = identity(robot.GetActiveDOF())
         while True:
             eef_pos = GetEETransform(robot)[0:3, 3:4].T
             # vector pointing from end effector(eef) to target
@@ -121,11 +124,15 @@ if __name__ == "__main__":
             # target reached by eef
             if(linalg.norm(dx) < e):
                 break
-            dq = GetJpinv(GetTranslationJacobian(robot, jointnames)).dot(dx.T)
+            J=GetTranslationJacobian(robot, jointnames)
+            Jpinv = GetJpinv(J)
+            dq = Jpinv.dot(dx.T)
             #Rescale dq s.t. norm is step
             if(linalg.norm(dq) > step):
                 dq = step * dq/linalg.norm(dq)
-            q = q + dq.T
+            #joint_repulsive is the angle change to pull each joint angle away from joint limit
+            joint_repulsive = (lower + upper)/2 - q
+            q = q + dq.T + beta * (I - Jpinv.dot(J)).dot(joint_repulsive.T).T
             #check whether each joint is within joint limit
             #if not, set to joint limit
             for i in range(7):
@@ -137,6 +144,7 @@ if __name__ == "__main__":
         end = time.clock()
         print "Time: ", end - start
         print "Joint angles when reaching the target: ", q[0,:]
+        print "mid: ", (upper+lower)/2
         ### YOUR CODE HERE ###
 
     robot.GetController().SetDesired(robot.GetDOFValues())
