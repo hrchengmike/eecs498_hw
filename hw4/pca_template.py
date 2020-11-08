@@ -2,7 +2,7 @@
 import utils
 import numpy
 ###YOUR IMPORTS HERE###
-
+import matplotlib.pyplot as plt
 ###YOUR IMPORTS HERE###
 
 
@@ -17,17 +17,43 @@ def main():
     utils.view_pc([pc])
 
     #Rotate the points to align with the XY plane
-
-
+    n = len(pc) #number of data in the point cloud
+    x = utils.convert_pc_to_matrix(pc)
+    x = x - numpy.mean(x, 1)
+    Q = x*x.T/(n-1)
+    u,s,v = numpy.linalg.svd(Q)
+    v = v.T  #Computes svd of covariance matrix Q=u*s*v'
+             #output of v from numpy.linalg.svd is actualy V'
+             #from Q = U S V'
+    y = v.T*x
+    pc_y = utils.convert_matrix_to_pc(y)
+    print v.T
 
     #Show the resulting point cloud
-
+    fig = utils.view_pc([pc_y])
+    #plt.gca().set_aspect('equal', adjustable='box')
 
     #Rotate the points to align with the XY plane AND eliminate the noise
-
+    v_s = v.copy()
+    variances = numpy.multiply(s,s)
+    e = 0.001 # threshold of variance, below which that dimension will be eliminated
+    for id, variance in enumerate(variances):
+        if variance < e:
+            v_s[:,id] = numpy.zeros((v.shape[0],1))
+    y_s = v_s.T*x
+    pc_ys = utils.convert_matrix_to_pc(y_s)
+    print v_s.T
 
     # Show the resulting point cloud
+    utils.view_pc([pc_ys])
 
+    # fit plane to original pc
+    x = utils.convert_pc_to_matrix(pc)
+    pt = numpy.mean(x, 1)
+    normal = v[:, variances < e]
+    fig = utils.view_pc([pc])
+    utils.draw_plane(fig, normal, pt, (0.1, 0.7, 0.1, 0.5), length=[-0.5, 1], width=[-0.5, 1])
+    plt.show()
     ###YOUR CODE HERE###
 
 
