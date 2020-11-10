@@ -53,7 +53,6 @@ def main():
     normal = v[:, variances < e]
     fig = utils.view_pc([pc])
     utils.draw_plane(fig, normal, pt, (0.1, 0.7, 0.1, 0.5), length=[-0.5, 1], width=[-0.5, 1])
-    plt.show()
     ###YOUR CODE HERE###
 
 
