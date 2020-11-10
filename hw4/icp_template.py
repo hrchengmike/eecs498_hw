@@ -18,6 +18,7 @@ def main():
 
     utils.view_pc([pc_source, pc_target], None, ['b', 'r'], ['o', '^'])
     plt.axis([-0.15, 0.15, -0.15, 0.15])
+    plt.show()
     ###YOUR CODE HERE###
 
     raw_input("Press enter to end:")
