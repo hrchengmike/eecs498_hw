@@ -40,6 +40,15 @@ def error(pts, a):
         e_tot = e_tot + e
     return e_tot/n
 
+# compute Sum of squares of residucal error
+def error_rss(pts, a):
+    n = len(pts)
+    e_tot = 0
+    for pt in pts:
+        e = ((1 - a[0,0]*pt[0,0] - a[1,0]*pt[1,0])/a[2,0]-pt[2,0])**2
+        e_tot = e_tot + e
+    return e_tot
+
 def main():
     #Import the cloud
     pc = utils.load_pc('cloud_ransac.csv')
@@ -50,9 +59,9 @@ def main():
 
     #Fit a plane to the data using ransac
     e_best = 10000
-    iteration = 100
+    iteration = 50
     delta = 0.15
-    N = 20
+    N = 200
     l = len(pc)
     for i in range(iteration):
         r = [] #r is the set of hypothetical inliers
@@ -72,7 +81,7 @@ def main():
         # refit model if consensus set is sufficiently big
         if len(c) > N:
             plane_refit = fit_plane(r+c)
-            e_new = error(r+c, plane_refit)
+            e_new = error_rss(r+c, plane_refit)
             if e_new < e_best:
                 e_best = e_new
                 plane_best = plane_refit
