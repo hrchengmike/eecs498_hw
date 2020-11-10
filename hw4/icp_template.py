@@ -45,12 +45,15 @@ def main():
     #Import the cloud
     pc_source = utils.load_pc('cloud_icp_source.csv')
     ###YOUR CODE HERE###
-    pc_target = utils.load_pc('cloud_icp_target2.csv') # Change this to load in a different target
+    test = 3 # which pc_target to use, 0, 1, 2, 3
+    pc_target = utils.load_pc('cloud_icp_target{}.csv'.format(str(test)))
+     # Change this to load in a different target
     fig = utils.view_pc([pc_source, pc_target], None, ['b', 'r'], ['o', '^'])
     plt.axis([-0.15, 0.15, -0.15, 0.15])
     plt.show()
-    e = 0.05  #0.0605 for target 0, 0.002 for target 1, 0.05 for target 2
+    error_threshold = 1.44  #0.0605 for target 0, 0.002 for target 1, 0.05 for target 2
              # 1.45 for target 3 not working
+    err = [] #list of all errors
     i = 0
     while True:
         i = i+1
@@ -68,13 +71,27 @@ def main():
         #apply transform
         for id, p in enumerate(pc_source):
             pc_source[id] = R * p + t
-        print "error: ", error(pc_source, pc_target)
-        if error(pc_source, pc_target) < e:
+        cur_err = error(pc_source, pc_target)
+        print "error: ", cur_err
+        err.append(cur_err)
+        if error(pc_source, pc_target) < error_threshold:
             break
 
-    fig = utils.view_pc([pc_source, pc_target], None, ['b', 'r'], ['o', '^'])
+    utils.view_pc([pc_source, pc_target], None, ['b', 'r'], ['o', '^'])
     plt.axis([-0.15, 0.15, -0.15, 0.15])
+
+    plt.figure()
+    title_font = 16
+    label_font = 14
+    plt.plot(range(1,len(err)+1),err, 'bo-')
+    plt.title('ICP Error vs iteration (target{})'.format(test), fontsize = title_font)
+    plt.xlabel('Iteration', fontsize = label_font)
+    plt.ylabel('error', fontsize = label_font)
+    plt.xticks(range(1,len(err)+1,3))
+    plt.xticks(fontsize=label_font)
+    plt.yticks(fontsize=label_font)
     plt.show()
+
     ###YOUR CODE HERE###
 
     raw_input("Press enter to end:")
