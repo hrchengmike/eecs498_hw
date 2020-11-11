@@ -108,7 +108,7 @@ if __name__ == "__main__":
         SetActiveDOFValuesNPMatrix(robot,q)
 
         ### YOUR CODE HERE ###
-        target = targets[1] ###pick your target here
+        target = targets[4] ###pick your target here
         #draw the target point in blue
         handles.append(env.plot3(points=array(target), pointsize=15.0, colors=array((0,0,1)) ))
         e = 0.01 # euclidean distance between end effector and goal before stop

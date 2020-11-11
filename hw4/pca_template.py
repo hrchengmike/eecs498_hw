@@ -6,7 +6,9 @@ import matplotlib.pyplot as plt
 from ransac_template import error, error_rss
 import time
 ###YOUR IMPORTS HERE###
-def pca_plane_fit(pc, delta, e = 0.001):
+
+#drops the dimension with lowest singular value
+def pca_plane_fit(pc, delta):
     start = time.clock()
     #Rotate the points to align with the XY plane
     n = len(pc) #number of data in the point cloud
@@ -23,7 +25,6 @@ def pca_plane_fit(pc, delta, e = 0.001):
     variances = numpy.multiply(s,s)
     normal = v[:, 2]
     plane = normal/(normal.T.dot(pt))
-    print plane
 
     #generate inliers and outliers
     inliers = []
@@ -66,7 +67,6 @@ def main():
              #from Q = U S V'
     y = v.T*x
     pc_y = utils.convert_matrix_to_pc(y)
-    print v.T
 
     #Show the resulting point cloud
     fig = utils.view_pc([pc_y])
@@ -81,7 +81,6 @@ def main():
             v_s[:,id] = numpy.zeros((v.shape[0],1))
     y_s = v_s.T*x
     pc_ys = utils.convert_matrix_to_pc(y_s)
-    print v_s.T
 
     # Show the resulting point cloud
     utils.view_pc([pc_ys])
@@ -92,9 +91,6 @@ def main():
     normal = v[:, variances < e]
     fig = utils.view_pc([pc])
     utils.draw_plane(fig, normal, pt, (0.1, 0.7, 0.1, 0.5), length=[-0.5, 1], width=[-0.5, 1])
-
-    time, err= pca_plane_fit(pc, 0.1, 0.001)
-    print time, err
     ###YOUR CODE HERE###
 
 

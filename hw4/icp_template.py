@@ -45,13 +45,13 @@ def main():
     #Import the cloud
     pc_source = utils.load_pc('cloud_icp_source.csv')
     ###YOUR CODE HERE###
-    test = 3 # which pc_target to use, 0, 1, 2, 3
+    test = 2 # which pc_target to use, 0, 1, 2, 3
     pc_target = utils.load_pc('cloud_icp_target{}.csv'.format(str(test)))
      # Change this to load in a different target
     fig = utils.view_pc([pc_source, pc_target], None, ['b', 'r'], ['o', '^'])
     plt.axis([-0.15, 0.15, -0.15, 0.15])
     plt.show()
-    error_threshold = 1.44  #0.0605 for target 0, 0.002 for target 1, 0.05 for target 2
+    error_threshold = 0.05  #0.0605 for target 0, 0.002 for target 1, 0.05 for target 2
              # 1.45 for target 3 not working
     err = [] #list of all errors
     i = 0
