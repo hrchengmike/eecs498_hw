@@ -5,7 +5,8 @@ import time
 import random
 import matplotlib
 ###YOUR IMPORTS HERE###
-
+from ransac_template import *
+from pca_template import *
 ###YOUR IMPORTS HERE###
 
 def add_some_outliers(pc,num_outliers):
@@ -24,10 +25,15 @@ def main():
         fig = utils.view_pc([pc])
 
         ###YOUR CODE HERE###
-
-
+        iteration = 200
+        delta = 0.2
+        N = 180
+        time, error = ransac(pc, iteration, delta, N)
+        print "ransac: ", time, error
+        time, error = pca_plane_fit(pc, delta, 0.01)
+        print "pca: ", time, error
         #this code is just for viewing, you can remove or change it
-        raw_input("Press enter for next test:")
+        #raw_input("Press enter for next test:")
         matplotlib.pyplot.close(fig)
         ###YOUR CODE HERE###
 

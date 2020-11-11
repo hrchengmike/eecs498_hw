@@ -4,6 +4,7 @@ import numpy
 ###YOUR IMPORTS HERE###
 import matplotlib.pyplot as plt
 import random
+import time
 ###YOUR IMPORTS HERE###
 
 #fits 3-d points to a plane ax + by + cz = 1 (assume plane not passing origin)
@@ -49,24 +50,15 @@ def error_rss(pts, a):
         e_tot = e_tot + e
     return e_tot
 
-def main():
-    #Import the cloud
-    pc = utils.load_pc('cloud_ransac.csv')
-
-    ###YOUR CODE HERE###
-    # Show the input point cloud
-    #fig = utils.view_pc([pc])
-
-    #Fit a plane to the data using ransac
+def ransac(pc, iteration = 50, delta = 0.15, N = 200):
     e_best = 10000
-    iteration = 50
-    delta = 0.15
-    N = 200
+    start = time.clock()
     l = len(pc)
     for i in range(iteration):
         r = [] #r is the set of hypothetical inliers
         c = [] #c is the set of consensus set
         c_ids = []
+        r_ids = []
         # randomly sample three points from point cloud
         r_ids = random.sample(range(0, l), 3)
         for r_id in r_ids:
@@ -85,26 +77,44 @@ def main():
             if e_new < e_best:
                 e_best = e_new
                 plane_best = plane_refit
-                r_best = r
-                c_best = c
                 r_ids_best = r_ids
                 c_ids_best = c_ids
+    end = time.clock()
 
     #Show the resulting point cloud
-    out = [] #plot outliers
+    outliers = [] #plot outliers
+    inliers = []#inliers
     for id, pt in enumerate(pc):
         if id not in r_ids_best+c_ids_best:
-            out.append(pt)
-    fig = utils.view_pc([out])
+            outliers.append(pt)
+        else:
+            inliers.append(pt)
+    fig = utils.view_pc([outliers])
 
     #plot inliers
-    utils.view_pc([r_best+c_best], fig, 'r', 'o')
+    utils.view_pc([inliers], fig, 'r', 'o')
 
     #Draw the fitted plane
     pt = numpy.matrix([[0],[0],[1/plane_best[2,0]]])
     utils.draw_plane(fig, plane_best, pt, (0.1, 0.7, 0.1, 0.5), length=[-0.5, 1], width=[-0.5, 1])
     plt.show()
-    print plane_best
+    plt.title("Plane fitting result of RANSAC algorithm", fontsize = 16)
+    return end-start, e_best
+
+def main():
+    #Import the cloud
+    pc = utils.load_pc('cloud_ransac.csv')
+
+    ###YOUR CODE HERE###
+    # Show the input point cloud
+    #fig = utils.view_pc([pc])
+
+    #Fit a plane to the data using ransac
+    iteration = 50
+    delta = 0.15
+    N = 200
+    time, error = ransac(pc, iteration, delta, N)
+    print time, error
     ###YOUR CODE HERE###
     raw_input("Press enter to end:")
 

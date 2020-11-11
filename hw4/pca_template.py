@@ -3,9 +3,48 @@ import utils
 import numpy
 ###YOUR IMPORTS HERE###
 import matplotlib.pyplot as plt
+from ransac_template import error, error_rss
+import time
 ###YOUR IMPORTS HERE###
+def pca_plane_fit(pc, delta, e = 0.001):
+    start = time.clock()
+    #Rotate the points to align with the XY plane
+    n = len(pc) #number of data in the point cloud
+    x_raw = utils.convert_pc_to_matrix(pc)
+    pt = numpy.mean(x_raw, 1)
+    x = x_raw - pt
+    Q = x*x.T/(n-1)
+    u,s,v = numpy.linalg.svd(Q)
+    v = v.T  #Computes svd of covariance matrix Q=u*s*v'
+             #output of v from numpy.linalg.svd is actualy V'
+             #from Q = U S V'
+    # fit plane to original pc
 
+    variances = numpy.multiply(s,s)
+    normal = v[:, 2]
+    plane = normal/(normal.T.dot(pt))
+    print plane
 
+    #generate inliers and outliers
+    inliers = []
+    outliers = []
+    for point in pc:
+        if error([point], plane) < delta:
+            inliers.append(point)
+        else:
+            outliers.append(point)
+    rss_err = error_rss(inliers, plane)
+    end = time.clock()
+
+    #plot
+    fig = utils.view_pc([outliers])
+    utils.view_pc([inliers], fig, 'r', 'o')
+    pt = numpy.matrix([[0],[0],[1/plane[2,0]]])
+    utils.draw_plane(fig, plane, pt, (0.1, 0.7, 0.1, 0.5), length=[-0.5, 1], width=[-0.5, 1])
+    plt.title("Plane fitting result of PCA", fontsize = 16)
+    #Draw the fitted plane
+    plt.show()
+    return end-start, rss_err
 def main():
 
     #Import the cloud
@@ -53,6 +92,9 @@ def main():
     normal = v[:, variances < e]
     fig = utils.view_pc([pc])
     utils.draw_plane(fig, normal, pt, (0.1, 0.7, 0.1, 0.5), length=[-0.5, 1], width=[-0.5, 1])
+
+    time, err= pca_plane_fit(pc, 0.1, 0.001)
+    print time, err
     ###YOUR CODE HERE###
 
 
