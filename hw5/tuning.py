@@ -5,10 +5,10 @@ from matplotlib.patches import Ellipse
 import pickle
 
 if __name__ == '__main__':
-    
-    #initialize plotting        
+
+    #initialize plotting
     plt.ion()
-    
+
     #load in the data
     PIK = "kfdata.dat"
     with open(PIK, "rb") as f:
@@ -28,16 +28,16 @@ if __name__ == '__main__':
         ###YOUR CODE HERE###
         #use the above variables, as well as A,B, and C (loaded above)...
         #to compute the motion and sensor error
-        motion_errors[:,i] = [0,0] #change this
-        sensor_errors[:,i] = [0,0] #change this
+        motion_errors[:,i:i+1] = x_t - A*x_tminus1 - B*u_t
+        sensor_errors[:,i:i+1] = z_t - C*x_t
         ###YOUR CODE HERE###
-    
+
     motion_cov=np.cov(motion_errors)
     sensor_cov=np.cov(sensor_errors)
-    
+
     print "Motion Covariance:"
     print motion_cov
     print "Measurement Covariance:"
     print sensor_cov
 
-    
+

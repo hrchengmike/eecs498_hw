@@ -8,10 +8,9 @@ import pickle
 def plot_cov(mean,cov,plot_axes):
     lambda_, v = np.linalg.eig(cov)
     lambda_ = np.sqrt(lambda_)
-
     ell = Ellipse(xy=mean,
               width=lambda_[0]*2, height=lambda_[1]*2,
-              angle=np.rad2deg(np.arccos(v[0, 0])))
+              edgecolor='black', angle=np.rad2deg(np.arccos(v[0, 0])))
     ell.set_facecolor('none')
     plot_axes.add_artist(ell)
     plt.scatter(mean[0,0],mean[1,0],c='r')
@@ -21,14 +20,17 @@ def plot_cov(mean,cov,plot_axes):
 def KalmanFilter(mu, Sigma, z, u, A, B, C, Q, R):
     ###YOUR CODE HERE###
 
-    #prediction step    
-    
-
+    #prediction step
+    mu_bar = A*mu + B*u
+    Sigma_bar = A*Sigma*A.T + R
     #correction step
+    K = Sigma_bar*C.T*np.linalg.inv(C*Sigma_bar*C.T + Q)
+    mu_new = mu_bar + K*(z - C*mu_bar)
+    Sigma_new = (np.eye(2) - K*C)*Sigma_bar
 
+    return mu_new, Sigma_new
 
-
-    mu_new = mu; Sigma_new = Sigma #comment this out to use your code
+    #mu_new = mu; Sigma_new = Sigma #comment this out to use your code
     ###YOUR CODE HERE###
     return mu_new, Sigma_new
 
@@ -36,7 +38,7 @@ def KalmanFilter(mu, Sigma, z, u, A, B, C, Q, R):
 def main():
     #initialize the figure to draw stuff
     plt.ion()
-    plot_axes = plt.subplot(111, aspect='equal')   
+    plot_axes = plt.subplot(111, aspect='equal')
 
     #load in the data
     PIK = "kfdata.dat"
@@ -66,9 +68,9 @@ def main():
         z = np.matrix(noisy_measurement[:,i]).transpose() #current x
         u = np.matrix(actions[:,i]).transpose()           #current u
         #run the Kalman Filter
-        mu, Sigma = KalmanFilter(mu, Sigma, z, u, A, B, C, Q, R); 
+        mu, Sigma = KalmanFilter(mu, Sigma, z, u, A, B, C, Q, R);
         #store the result
-        estimated_states[:,i] = np.squeeze(mu)  
+        estimated_states[:,i] = np.squeeze(mu)
         #draw covariance every 3 steps (drawing every step is too cluttered)
         if i%3==0:
             plot_cov(mu,Sigma,plot_axes)
@@ -86,8 +88,8 @@ def main():
     plt.ylabel('y')
     plt.show()
     plt.pause(.001)
-  
-    raw_input("Press enter to exit")  
+
+    raw_input("Press enter to exit")
 
 if __name__ == '__main__':
     main()
