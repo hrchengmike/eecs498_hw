@@ -27,6 +27,84 @@ def ConvertPathToTrajectory(robot,path=[]):
     planningutils.RetimeActiveDOFTrajectory(traj,robot)#,maxvelocities=ones(3),maxaccelerations=5*ones(3))
     return traj
 
+class node:
+    def __init__ (self, x, parent=None, ctl=None):
+        #configuration saved as numpy array
+        # state vector x = [px, py, theta, vx, vy, omega]
+        self.x = x
+        # what control applied to get to current state from parent node
+        self.ctl = ctl
+        if not parent == None:
+            self.parent = parent
+        self.children = []
+
+    def add_child (self, child):
+        assert isinstance(child, node)
+        self.children.append(child)
+        if node.plot_path is True:
+            self.plot_node_traj(child)
+
+    def plot_node_traj(self, skip = 20):
+           for i, pt in enumerate(self.traj):
+               '''
+               node.handles.append(node.env.drawlinestrip(points =hstack([T_cur[0:3, 3:4].T, T_par[0:3, 3:4].T]), linewidth=3.0, colors=array(((1,0,0),(0,0,1)))))
+               '''
+               if i % skip == 0:
+                   node.handles.append(node.env.plot3(points=array(pt),
+                                           pointsize=5.0,
+                                           colors=array(((0,0,1,0.2)))))
+
+    def computeNextState(self, control):
+        px = self.x[0]
+        py = self.x[1]
+        theta = self.x[2]
+        vx = self.x[3]
+        vy = self.x[4]
+        omega = self.x[5]
+        fx = control[0]
+        fy = control[1]
+        t = control[2]
+        ax = fx/node.m
+        ay = fy/node.m
+        beta = t/node.I
+        dt = node.dt
+        for i in range(int(node.dt_ctl/node.dt)):
+            px = px + dt * vx
+            py = py + dt * vy
+            theta = theta + omega * dt
+            vx = vx + ax * dt
+            vy = vy + ay * dt
+            omega = omega + beta * dt
+        next = np.array([px, py, theta, vx, vy, omega])
+        return next
+
+    #return the trajectory of node, a list of nparrays
+    #from parent to current node
+    def comp_traj(self):
+        px = self.parent.x[0]
+        py = self.parent.x[1]
+        theta = self.parent.x[2]
+        vx = self.parent.x[3]
+        vy = self.parent.x[4]
+        omega = self.parent.x[5]
+        fx = self.ctl[0]
+        fy = self.ctl[1]
+        t = self.ctl[2]
+        ax = fx/node.m
+        ay = fy/node.m
+        beta = t/node.I
+        dt = node.dt_vis
+        traj = []
+        for i in range(int(node.dt_ctl/dt)):
+            px = px + dt * vx
+            py = py + dt * vy
+            theta = theta + omega * dt
+            vx = vx + ax * dt
+            vy = vy + ay * dt
+            omega = omega + beta * dt
+            traj.append(np.array([px, py, theta]))
+            self.traj = traj
+
 class hovercraft_class:
     def __init__(self, robot, m, I, dt, dt_vis, dt_ctl):
         self.robot = robot
@@ -54,45 +132,6 @@ class hovercraft_class:
                        [         0,           0,       0,       1]])
         self.robot.SetTransform(T)
 
-    #compute the trajectory of robot given current pose and control input
-    #returns trajectory
-    #control = list [fx, fy, t] force and torque
-    def computeTraj(self, control):
-        px = self.x[0]
-        py = self.x[1]
-        theta = self.x[2]
-        vx = self.x[3]
-        vy = self.x[4]
-        omega = self.x[5]
-        fx = control[0]
-        fy = control[1]
-        t = control[2]
-        ax = fx/self.m
-        ay = fy/self.m
-        beta = t/self.I
-        dt = self.dt
-        traj = []
-        for i in range(int(self.dt_ctl/self.dt)):
-            px = px + dt * vx
-            py = py + dt * vy
-            theta = theta + omega * dt
-            vx = vx + ax * dt
-            vy = vy + ay * dt
-            omega = omega + beta * dt
-            traj.append(np.array([px, py, theta]))
-        self.x = np.array([px, py, theta, vx, vy, omega])
-        return traj
-
-    def computeControls(self, controls):
-        traj = []
-        for control in controls:
-            self.executeTraj(self.computeTraj(control))
-
-    #compute the goal position of robot given current pose and control input
-    #returns end position
-    #def computePos(control)
-
-
 if __name__ == "__main__":
 
     env = Environment()
@@ -111,7 +150,28 @@ if __name__ == "__main__":
     robot = env.GetRobots()[0]
     print "Robot in collision with environment?", env.CheckCollision(robot)
 
-    hovercraft = hovercraft_class(robot, 1, 1, 0.001, 0.001, 3)
+    handles = []
+    hovercraft = hovercraft_class(robot, 1, 1, 0.001, 0.005, 3)
+    node.handles = handles
+    node.robot = robot
+    node.env = env
+    node.m = hovercraft.m
+    node.I = hovercraft.I
+    node.dt = hovercraft.dt #time increment during integration
+    node.dt_vis = hovercraft.dt_vis # time increment during visualization
+    node.dt_ctl = hovercraft.dt_ctl
+    node.plot_path = True
+
+    root = node(np.array([-1.0, -2.0, 0, 0, 0, 0]))
+    controls = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+    control = [1, 1, 0]
+    child1 = node(root.computeNextState(control), root, control)
+    child1.comp_traj()
+    hovercraft.executeTraj(child1.traj)
+    print child1.parent.x
+    print child1.x, child1.ctl
+    child1.plot_node_traj()
+    '''
     traj = []
     for i in arange(0.0, 1.0, 0.001):
         traj.append(np.array([i, 0, 0]))
@@ -125,7 +185,7 @@ if __name__ == "__main__":
     controls = [[1,0,0], [-1,0,0],[-1,0,0],[1,0,0]]
     hovercraft.computeControls(controls)
     #hovercraft.executeTraj(traj2)
-
+    '''
     raw_input("Press enter to exit...")
     env.Destroy()
 
