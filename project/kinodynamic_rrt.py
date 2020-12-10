@@ -13,20 +13,6 @@ if not __openravepy_build_doc__:
     from openravepy import *
     from numpy import *
 
-def ConvertPathToTrajectory(robot,path=[]):
-#Path should be of the form path = [q_1, q_2, q_3,...], where q_i = [joint1_i, joint2_i, joint3_i,...]
-
-    if not path:
-        return None
-    # Initialize trajectory
-    traj = RaveCreateTrajectory(env,'')
-    traj.Init(robot.GetActiveConfigurationSpecification())
-    for i in range(0,len(path)):
-        traj.Insert(i,numpy.array(path[i]))
-    # Move Robot Through Trajectory
-    planningutils.RetimeActiveDOFTrajectory(traj,robot)#,maxvelocities=ones(3),maxaccelerations=5*ones(3))
-    return traj
-
 class node:
     def __init__ (self, x, parent=None, ctl=None):
         #configuration saved as numpy array
@@ -49,16 +35,9 @@ class node:
     # plot the trajectory of self.traj, trajectory from parent to current node, which is computed from comp_traj
     def plot_node_traj(self, skip = 20):
         for i, pt in enumerate(self.traj):
-           '''
-           node.handles.append(node.env.drawlinestrip(points =hstack([T_cur[0:3, 3:4].T, T_par[0:3, 3:4].T]), linewidth=3.0, colors=array(((1,0,0),(0,0,1)))))
-           '''
            if i % skip == 0:
-               node.handles.append(node.env.plot3(points=array((pt[0], pt[1], 0.05)),
-                                       pointsize=5.0,
-                                       colors=array(((0,0,1,0.2)))))
-        node.handles.append(node.env.plot3(points=array((self.x[0], self.x[1], 0.05)),
-                                           pointsize=5.0,
-                                           colors=array(((1,0,0,0.2)))))
+               node.handles.append(node.env.plot3(points=array((pt[0], pt[1], 0.05)), pointsize=5.0, colors=array(((0,0,1,0.2)))))
+        node.handles.append(node.env.plot3(points=array((self.x[0], self.x[1], 0.05)), pointsize=5.0, colors=array(((1,0,0,0.2)))))
     # compute next state of current node given control
     # control is list or numpy array
     # return none when robot collides on the way of cur->next
@@ -228,10 +207,7 @@ def extend(near, rand):
 
 def full_path(root, node):
     traj = node.traj
-    i = 1
     while not node.parent == root:
-        print i
-        i += 1
         node = node.parent
         traj = node.traj + traj
     return traj
@@ -256,28 +232,19 @@ def kinodynamic_rrt(start_config, goal_config, e, bias, n,  m, I, dt, dt_vis, dt
     node.hovercraft = hovercraft
     root = node(array(start_config), None, None)
     goal = node(array(goal_config))
-    print "root.x: ", root.x
     for k in range(n):
         print k
         rand = random_config (env, hovercraft, goal, bias)
-        #print "rand.x", rand.x
         near = find_near(root, rand, goal)
-        #print "near.x", near.x
         new = extend(near, rand)
         if new is not None:
-            #print "new.x", new.x
             new.comp_traj()
             near.add_child(new)
-            if np.sqrt((new.x[0] - goal.x[0])**2+(new.x[1] - goal.x[1])**2) < e:
+            min_dist = np.sqrt((new.x[0] - goal.x[0])**2+(new.x[1] - goal.x[1])**2)
+            print "min_dist", min_dist
+            if min_dist < e:
                 print "goal reached"
                 return full_path(root, new)
-        '''
-        last = connect(near, rand, goal, step, env, robot, handles)
-        if not last == False:
-            path = path(root, last)
-            draw_path(raw_path, env, robot, (1, 0, 0), handles, 3.0)
-            return path
-        '''
 
 if __name__ == "__main__":
 
@@ -300,7 +267,7 @@ if __name__ == "__main__":
         handles = []
         start_config = np.array([-1.0, -2.0, 0, 0, 0, 0])
         goal_config = np.array([1.8, 1.8, 0, 0, 0, 0])
-        e = 0.4
+        e = 0.3
         bias = 0.1 # probability of selecting goal as the random config
         n = 2000 # total number of iteration
         m = 1 # mass of hovercraft
@@ -308,14 +275,13 @@ if __name__ == "__main__":
         dt = 0.001 #time increment during numerical integration
         dt_vis = 0.005 # time increment during visualization
         dt_ctl = 0.5 # time gap of adjacent contorl
-        controls = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0]] # set of control
+        controls = [[0, 0, 0], [1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0]] # set of control
 
         #run kinodynamic rrt
-        traj = kinodynamic_rrt(start_config, goal_config, e, bias, n, m, I, dt, dt_vis, dt_ctl, controls, env, robot, handles)
+        traj = kinodynamic_rrt(start_config, goal_config, e, bias, n, m, I, dt, dt_vis, dt_ctl, controls, env, robot, handles, True)
     hovercraft = hovercraft_class(robot, start_config, m, I, dt, dt_vis, dt_ctl)
     hovercraft.executeTraj(traj)
     #execute path
-
     '''
     control = [1, 1, 0]
     child1 = node(root.computeNextState(control), root, control)
@@ -324,22 +290,6 @@ if __name__ == "__main__":
     print child1.parent.x
     print child1.x, child1.ctl
     child1.plot_node_traj()
-    '''
-
-    '''
-    traj = []
-    for i in arange(0.0, 1.0, 0.001):
-        traj.append(np.array([i, 0, 0]))
-    for i in arange(0.0, 1.0, 0.001):
-        traj.append(np.array([1, 0, i]))
-    for i in arange(0.0, 1.0, 0.001):
-        traj.append(np.array([1, i, np.pi/2]))
-    control = [1, 0, 0]
-    #traj2 = hovercraft.computeTraj(control)
-    #print traj2[-1]
-    controls = [[1,0,0], [-1,0,0],[-1,0,0],[1,0,0]]
-    hovercraft.computeControls(controls)
-    #hovercraft.executeTraj(traj2)
     '''
     raw_input("Press enter to exit...")
     env.Destroy()
