@@ -48,17 +48,24 @@ class node:
         vx = self.x[3]
         vy = self.x[4]
         omega = self.x[5]
-        fx = control[0]
-        fy = control[1]
+        #force in local frame, transform to global frame
+        fx_local = control[0]
+        fy_local = control[1]
+
         t = control[2]
-        ax = fx/node.m
-        ay = fy/node.m
+
         beta = t/node.I
         dt = node.dt
         for i in range(int(node.dt_ctl/node.dt)):
             px = px + dt * vx
             py = py + dt * vy
             theta = theta + omega * dt
+
+            fx = fx_local * np.cos(theta) - fy_local * np.sin(theta)
+            fy = fx_local * np.sin(theta) + fy_local * np.cos(theta)
+            ax = fx/node.m
+            ay = fy/node.m
+
             vx = vx + ax * dt
             vy = vy + ay * dt
             omega = omega + beta * dt
@@ -84,11 +91,12 @@ class node:
         vx = self.parent.x[3]
         vy = self.parent.x[4]
         omega = self.parent.x[5]
-        fx = self.ctl[0]
-        fy = self.ctl[1]
+        #force in local frame, transform to global frame
+        fx_local = self.ctl[0]
+        fy_local = self.ctl[1]
+
         t = self.ctl[2]
-        ax = fx/node.m
-        ay = fy/node.m
+
         beta = t/node.I
         dt = node.dt_vis
         traj = []
@@ -96,6 +104,12 @@ class node:
             px = px + dt * vx
             py = py + dt * vy
             theta = theta + omega * dt
+
+            fx = fx_local * np.cos(theta) - fy_local * np.sin(theta)
+            fy = fx_local * np.sin(theta) + fy_local * np.cos(theta)
+            ax = fx/node.m
+            ay = fy/node.m
+
             vx = vx + ax * dt
             vy = vy + ay * dt
             omega = omega + beta * dt
@@ -130,7 +144,7 @@ class hovercraft_class:
         self.robot.SetTransform(T)
 
 #returns a node of random configuration in the free space with probability (1-bias), with a probability of bias return goal node
-def random_config (env, hovercraft, goal, bias, x_lim = [-2.5, 2.5], y_lim = [-2.5, 2.5], v_lim = [-1, 1], omega_lim = [-1, 1]):
+def random_config (env, hovercraft, goal, bias, x_lim = [-2.5, 2.5], y_lim = [-2.5, 2.5], v_lim = [-0.5, 0.5], omega_lim = [-0.5, 0.5]):
     rand = random.rand()
     #set goal for probability of bias
     if rand < bias:
@@ -262,35 +276,40 @@ if __name__ == "__main__":
 
     #load robot
     robot = env.GetRobots()[0]
+
+
     with env:
         #set variables
         handles = []
-        start_config = np.array([-1.0, -2.0, 0, 0, 0, 0])
+        start_config = np.array([-2.0, -2.0, 0, 0, 0, 0])
         goal_config = np.array([1.8, 1.8, 0, 0, 0, 0])
-        e = 0.3
+        e = 0.2
         bias = 0.1 # probability of selecting goal as the random config
-        n = 2000 # total number of iteration
-        m = 1 # mass of hovercraft
-        I = 1 # moment of inertia of hovercraft
+        n = 3000 # total number of iteration
+        m = 8 # mass of hovercraft
+        I = 8 # moment of inertia of hovercraft
         dt = 0.001 #time increment during numerical integration
         dt_vis = 0.005 # time increment during visualization
-        dt_ctl = 0.5 # time gap of adjacent contorl
-        controls = [[0, 0, 0], [1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0]] # set of control
+        dt_ctl = 0.4 # time gap of adjacent contorl
+        controls = [[0, 0, 1], [1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0]] # set of control
 
         #run kinodynamic rrt
         traj = kinodynamic_rrt(start_config, goal_config, e, bias, n, m, I, dt, dt_vis, dt_ctl, controls, env, robot, handles, True)
     hovercraft = hovercraft_class(robot, start_config, m, I, dt, dt_vis, dt_ctl)
     hovercraft.executeTraj(traj)
+
+
     #execute path
     '''
-    control = [1, 1, 0]
+    root = node(np.array([-1.0, -2.0, 0.5, np.cos(0.5), np.sin(0.5), 0]))
+    control = [0, 1, 0]
     child1 = node(root.computeNextState(control), root, control)
     child1.comp_traj()
     hovercraft.executeTraj(child1.traj)
     print child1.parent.x
     print child1.x, child1.ctl
     child1.plot_node_traj()
-    '''
+'''
     raw_input("Press enter to exit...")
     env.Destroy()
 
