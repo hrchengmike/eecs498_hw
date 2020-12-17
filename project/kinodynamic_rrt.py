@@ -36,8 +36,8 @@ class node:
     def plot_node_traj(self, skip = 20):
         for i, pt in enumerate(self.traj):
            if i % skip == 0:
-               node.handles.append(node.env.plot3(points=array((pt[0], pt[1], 0.05)), pointsize=5.0, colors=array(((0,0,1,0.2)))))
-        node.handles.append(node.env.plot3(points=array((self.x[0], self.x[1], 0.05)), pointsize=5.0, colors=array(((1,0,0,0.2)))))
+               node.handles.append(node.env.plot3(points=array((pt[0], pt[1], 0.05)), pointsize=2.0, colors=array(((0,0,1,0.2)))))
+        node.handles.append(node.env.plot3(points=array((self.x[0], self.x[1], 0.05)), pointsize=2.0, colors=array(((1,0,0,0.2)))))
     # compute next state of current node given control
     # control is list or numpy array
     # return none when robot collides on the way of cur->next
@@ -144,7 +144,7 @@ class hovercraft_class:
         self.robot.SetTransform(T)
 
 #returns a node of random configuration in the free space with probability (1-bias), with a probability of bias return goal node
-def random_config (env, hovercraft, goal, bias, x_lim = [-2.5, 2.5], y_lim = [-2.5, 2.5], v_lim = [-0.5, 0.5], omega_lim = [-0.5, 0.5]):
+def random_config (env, hovercraft, goal, bias, x_lim = [-5, 5], y_lim = [-5, 5], v_lim = [-0.5, 0.5], omega_lim = [-0.5, 0.5]):
     rand = random.rand()
     #set goal for probability of bias
     if rand < bias:
@@ -271,31 +271,37 @@ if __name__ == "__main__":
     env.Reset()
 
     # load a scene from environment XML file
-    env.Load('hovercraft_env.xml')
+    env.Load('hovercraft_env2.xml')
     time.sleep(0.5)
 
     #load robot
     robot = env.GetRobots()[0]
-
+    #set variables
+    handles = []
+    start_config = np.array([-4.5, -4.5, 0, 0, 0, 0])
+    goal_config = np.array([4.5, 4.5, 0, 0, 0, 0])
+    e = 0.4
+    bias = 0.1 # probability of selecting goal as the random config
+    n = 5000 # total number of iteration
+    m = 8 # mass of hovercraft
+    I = 8 # moment of inertia of hovercraft
+    dt = 0.01 #time increment during numerical integration
+    dt_vis = 0.01 # time increment during visualization
+    dt_ctl = 0.8 # time gap of adjacent control 0.8, 2.4
+    #controls = [[1, 0, 0],[0, 1, 0]]
+    controls = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0]]
+    #controls = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [1, 1, 0], [1, -1, 0], [-1, 1, 0], [-1, -1, 0]]
+    #controls = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [1, 1, 0], [1, -1, 0], [-1, 1, 0], [-1, -1, 0],[0.5, 0, 0], [-0.5, 0, 0], [0, 0.5, 0], [0, -0.5, 0], [0.5, 0.5, 0], [0.5, -0.5, 0], [-0.5, 0.5, 0], [-0.5, -0.5, 0], [0, 0, 1], [0, 0, 2]] # set of control
+    #controls = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [1, 1, 0], [1, -1, 0], [-1, 1, 0], [-1, -1, 0],[0.5, 0, 0], [-0.5, 0, 0], [0, 0.5, 0], [0, -0.5, 0], [0.5, 0.5, 0], [0.5, -0.5, 0], [-0.5, 0.5, 0], [-0.5, -0.5, 0]] # set of control
+    #controls = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0.5, 0, 0], [-0.5, 0, 0], [0, 0.5, 0], [0, -0.5, 0],] # set of control
+    #controls = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [2, 0, 0], [-2, 0, 0], [0, 2, 0], [0, -2, 0]]
+    hovercraft = hovercraft_class(robot, start_config, m, I, dt, dt_vis, dt_ctl)
+    hovercraft.setRobotPose(start_config[:3])
+    time.sleep(0.1)
 
     with env:
-        #set variables
-        handles = []
-        start_config = np.array([-2.0, -2.0, 0, 0, 0, 0])
-        goal_config = np.array([1.8, 1.8, 0, 0, 0, 0])
-        e = 0.2
-        bias = 0.1 # probability of selecting goal as the random config
-        n = 3000 # total number of iteration
-        m = 8 # mass of hovercraft
-        I = 8 # moment of inertia of hovercraft
-        dt = 0.001 #time increment during numerical integration
-        dt_vis = 0.005 # time increment during visualization
-        dt_ctl = 0.4 # time gap of adjacent contorl
-        controls = [[0, 0, 1], [1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0]] # set of control
-
         #run kinodynamic rrt
         traj = kinodynamic_rrt(start_config, goal_config, e, bias, n, m, I, dt, dt_vis, dt_ctl, controls, env, robot, handles, True)
-    hovercraft = hovercraft_class(robot, start_config, m, I, dt, dt_vis, dt_ctl)
     hovercraft.executeTraj(traj)
 
 

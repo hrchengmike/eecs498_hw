@@ -107,7 +107,7 @@
     <Body type="static">
       <Translation>0 0 0</Translation>
       <Geom type="box">
-        <extents>0.6 0.05 0.2</extents>
+        <extents>0.4 0.05 0.2</extents>
         <translation>-0.8 -1.6 0.2</translation>
         <diffuseColor>.6 .6 .6</diffuseColor>
         <ambientColor>0.6 0.6 0.6</ambientColor>
