@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import time
-import openravepy
 import numpy as np
-from rrt import *
+from math import *
+import Queue
+from openravepy import *
 
 #### YOUR IMPORTS GO HERE ####
 
@@ -226,22 +227,26 @@ def extend(near, rand):
     new = node(next_states[min_dist_id], near, node.controls[min_dist_id])
     return new
 
-def full_path(root, node, plot = True):
+def full_path(root, cur_node, plot = True):
     traj = []
+    len = 0
     while True:
-        if node.plot_all_branches is False:
-            node.comp_traj()
+        len = len + 1
+        if cur_node.plot_all_branches is False:
+            cur_node.comp_traj()
         if plot is True:
-            node.plot_node_traj(type = 'line')
-        traj = node.traj + traj
-        node = node.parent
-        if node.parent == root:
+            cur_node.plot_node_traj(type = 'line')
+        traj = cur_node.traj + traj
+        cur_node = cur_node.parent
+        if cur_node.parent == root:
+            node.traj_time = len * node.dt_ctl
             break
     return traj
 
 # run kinodynamic rrt and return the trajectory planned
 def kinodynamic_rrt(start_config, goal_config, e, bias, n,  m, I, dt, dt_vis, dt_ctl, controls, env, robot, handles, plot_all_branches = True):
     #initialize variable
+    start = time.time()
     hovercraft = hovercraft_class(robot, start_config, m, I, dt, dt_vis, dt_ctl)
     node.handles = handles
     node.robot = robot
@@ -270,12 +275,13 @@ def kinodynamic_rrt(start_config, goal_config, e, bias, n,  m, I, dt, dt_vis, dt
                 new.comp_traj()
                 new.plot_node_traj()
             dist2goal = np.sqrt((new.x[0] - goal.x[0])**2+(new.x[1] - goal.x[1])**2)
-            if dist2goal<min_dist2goal:
+            if dist2goal < min_dist2goal:
                 min_dist2goal = dist2goal
-                print "iteration: ", k,  " min_dist2goal: ", min_dist2goal
+                #print "iteration: ", k,  " min_dist2goal: ", min_dist2goal
             if dist2goal < e:
                 print "goal reached"
-                return full_path(root, new)
+                end = time.time()
+                return end-start, full_path(root, new), node.traj_time
 
 
 
