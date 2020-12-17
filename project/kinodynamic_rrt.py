@@ -29,15 +29,22 @@ class node:
     def add_child (self, child):
         assert isinstance(child, node)
         self.children.append(child)
-        if node.plot_path is True:
-            child.plot_node_traj()
 
     # plot the trajectory of self.traj, trajectory from parent to current node, which is computed from comp_traj
-    def plot_node_traj(self, skip = 20):
+    def plot_node_traj(self, skip = 5, type = 'pt'):
         for i, pt in enumerate(self.traj):
-           if i % skip == 0:
-               node.handles.append(node.env.plot3(points=array((pt[0], pt[1], 0.05)), pointsize=2.0, colors=array(((0,0,1,0.2)))))
-        node.handles.append(node.env.plot3(points=array((self.x[0], self.x[1], 0.05)), pointsize=2.0, colors=array(((1,0,0,0.2)))))
+            if i == 0:
+                prev_pt = pt
+            if i % skip == 0:
+                if type == 'pt':
+                    #node.handles.append(node.env.plot3(points=array((pt[0], pt[1], 0.05)), pointsize=2.0, colors=array(((0,0,1,0.2)))))
+                    node.handles.append(node.env.drawlinestrip(points =hstack([array((pt[0], pt[1], 0.05)), array((prev_pt[0], prev_pt[1], 0.05))]), linewidth=3.0,colors=array(((0,0,1),(0,0,1)))))
+                    prev_pt = pt
+                if type == 'line':
+                    node.handles.append(node.env.drawlinestrip(points =hstack([array((pt[0], pt[1], 0.05)), array((prev_pt[0], prev_pt[1], 0.05))]), linewidth=3.0,colors=array(((0,0,0),(0,0,0)))))
+                    prev_pt = pt
+
+        node.handles.append(node.env.plot3(points=array((self.x[0], self.x[1], 0.05)), pointsize=3.0, colors=array(((1,0,0,0.2)))))
     # compute next state of current node given control
     # control is list or numpy array
     # return none when robot collides on the way of cur->next
@@ -100,7 +107,7 @@ class node:
         beta = t/node.I
         dt = node.dt_vis
         traj = []
-        for i in range(int(node.dt_ctl/dt)):
+        for i in range(int(node.dt_ctl/dt)+1):
             px = px + dt * vx
             py = py + dt * vy
             theta = theta + omega * dt
@@ -114,7 +121,7 @@ class node:
             vy = vy + ay * dt
             omega = omega + beta * dt
             traj.append(np.array([px, py, theta]))
-            self.traj = traj
+        self.traj = traj
 
 class hovercraft_class:
     def __init__(self, robot, x, m, I, dt, dt_vis, dt_ctl):
@@ -129,10 +136,10 @@ class hovercraft_class:
 
     #execute traj which is a list of np arrays [q1, ..., qn], qi=[x, y, theta]
     #dt is the time between adjacent qi
-    def executeTraj(self, traj):
+    def executeTraj(self, traj, time_scale = 1):
         for i in range(len(traj)):
             self.setRobotPose(traj[i])
-            time.sleep(self.dt_vis)
+            time.sleep(self.dt_vis*time_scale)
 
     #sets the robot pose and show in gui, pose is in numpy array [x, y, theta]
     def setRobotPose(self, pose):
@@ -216,18 +223,24 @@ def extend(near, rand):
     # all controls collide, return None
     if min_dist_id is None:
         return None
-    new = node(next_states[min_dist_id], near, controls[min_dist_id])
+    new = node(next_states[min_dist_id], near, node.controls[min_dist_id])
     return new
 
-def full_path(root, node):
-    traj = node.traj
-    while not node.parent == root:
-        node = node.parent
+def full_path(root, node, plot = True):
+    traj = []
+    while True:
+        if node.plot_all_branches is False:
+            node.comp_traj()
+        if plot is True:
+            node.plot_node_traj(type = 'line')
         traj = node.traj + traj
+        node = node.parent
+        if node.parent == root:
+            break
     return traj
 
 # run kinodynamic rrt and return the trajectory planned
-def kinodynamic_rrt(start_config, goal_config, e, bias, n,  m, I, dt, dt_vis, dt_ctl, controls, env, robot, handles, plot_path = True):
+def kinodynamic_rrt(start_config, goal_config, e, bias, n,  m, I, dt, dt_vis, dt_ctl, controls, env, robot, handles, plot_all_branches = True):
     #initialize variable
     hovercraft = hovercraft_class(robot, start_config, m, I, dt, dt_vis, dt_ctl)
     node.handles = handles
@@ -238,7 +251,7 @@ def kinodynamic_rrt(start_config, goal_config, e, bias, n,  m, I, dt, dt_vis, dt
     node.dt = dt #time increment during integration
     node.dt_vis = dt_vis # time increment during visualization
     node.dt_ctl = dt_ctl
-    node.plot_path = plot_path
+    node.plot_all_branches = plot_all_branches
     node.controls = controls
     node.handles = handles
     node.robot = robot
@@ -246,77 +259,24 @@ def kinodynamic_rrt(start_config, goal_config, e, bias, n,  m, I, dt, dt_vis, dt
     node.hovercraft = hovercraft
     root = node(array(start_config), None, None)
     goal = node(array(goal_config))
+    min_dist2goal = 100
     for k in range(n):
-        print k
         rand = random_config (env, hovercraft, goal, bias)
         near = find_near(root, rand, goal)
         new = extend(near, rand)
         if new is not None:
-            new.comp_traj()
             near.add_child(new)
-            min_dist = np.sqrt((new.x[0] - goal.x[0])**2+(new.x[1] - goal.x[1])**2)
-            print "min_dist", min_dist
-            if min_dist < e:
+            if node.plot_all_branches is True:
+                new.comp_traj()
+                new.plot_node_traj()
+            dist2goal = np.sqrt((new.x[0] - goal.x[0])**2+(new.x[1] - goal.x[1])**2)
+            if dist2goal<min_dist2goal:
+                min_dist2goal = dist2goal
+                print "iteration: ", k,  " min_dist2goal: ", min_dist2goal
+            if dist2goal < e:
                 print "goal reached"
                 return full_path(root, new)
 
-if __name__ == "__main__":
 
-    #initialize environment
-    env = Environment()
-    env.SetViewer('qtcoin')
-    # env.SetDebugLevel(1) #comment this in to turn off openrave warnings
-    collisionChecker = RaveCreateCollisionChecker(env,'ode')
-    env.SetCollisionChecker(collisionChecker)
-    env.Reset()
-
-    # load a scene from environment XML file
-    env.Load('hovercraft_env2.xml')
-    time.sleep(0.5)
-
-    #load robot
-    robot = env.GetRobots()[0]
-    #set variables
-    handles = []
-    start_config = np.array([-4.5, -4.5, 0, 0, 0, 0])
-    goal_config = np.array([4.5, 4.5, 0, 0, 0, 0])
-    e = 0.4
-    bias = 0.1 # probability of selecting goal as the random config
-    n = 5000 # total number of iteration
-    m = 8 # mass of hovercraft
-    I = 8 # moment of inertia of hovercraft
-    dt = 0.01 #time increment during numerical integration
-    dt_vis = 0.01 # time increment during visualization
-    dt_ctl = 0.8 # time gap of adjacent control 0.8, 2.4
-    #controls = [[1, 0, 0],[0, 1, 0]]
-    controls = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0]]
-    #controls = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [1, 1, 0], [1, -1, 0], [-1, 1, 0], [-1, -1, 0]]
-    #controls = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [1, 1, 0], [1, -1, 0], [-1, 1, 0], [-1, -1, 0],[0.5, 0, 0], [-0.5, 0, 0], [0, 0.5, 0], [0, -0.5, 0], [0.5, 0.5, 0], [0.5, -0.5, 0], [-0.5, 0.5, 0], [-0.5, -0.5, 0], [0, 0, 1], [0, 0, 2]] # set of control
-    #controls = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [1, 1, 0], [1, -1, 0], [-1, 1, 0], [-1, -1, 0],[0.5, 0, 0], [-0.5, 0, 0], [0, 0.5, 0], [0, -0.5, 0], [0.5, 0.5, 0], [0.5, -0.5, 0], [-0.5, 0.5, 0], [-0.5, -0.5, 0]] # set of control
-    #controls = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0.5, 0, 0], [-0.5, 0, 0], [0, 0.5, 0], [0, -0.5, 0],] # set of control
-    #controls = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [2, 0, 0], [-2, 0, 0], [0, 2, 0], [0, -2, 0]]
-    hovercraft = hovercraft_class(robot, start_config, m, I, dt, dt_vis, dt_ctl)
-    hovercraft.setRobotPose(start_config[:3])
-    time.sleep(0.1)
-
-    with env:
-        #run kinodynamic rrt
-        traj = kinodynamic_rrt(start_config, goal_config, e, bias, n, m, I, dt, dt_vis, dt_ctl, controls, env, robot, handles, True)
-    hovercraft.executeTraj(traj)
-
-
-    #execute path
-    '''
-    root = node(np.array([-1.0, -2.0, 0.5, np.cos(0.5), np.sin(0.5), 0]))
-    control = [0, 1, 0]
-    child1 = node(root.computeNextState(control), root, control)
-    child1.comp_traj()
-    hovercraft.executeTraj(child1.traj)
-    print child1.parent.x
-    print child1.x, child1.ctl
-    child1.plot_node_traj()
-'''
-    raw_input("Press enter to exit...")
-    env.Destroy()
 
 
