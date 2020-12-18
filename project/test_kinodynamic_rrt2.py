@@ -32,26 +32,31 @@ if __name__ == "__main__":
     dt_ctl = 1.2 # time gap of adjacent control 0.8, 1.5 m = 2, I= 2, revwese YU
     #controls = [[1, 0, 0],[0, 1, 0]]
 
-    tot_it = 10
-    num_angles = [40]
-    result_comp_time = np.zeros((len(num_angles),tot_it))
-    result_path_time = np.zeros((len(num_angles),tot_it))
-    for i, num_angle in enumerate(num_angles):
+    tot_it = 20
+    num_angles = [4]
+    control_magnitude = [[1], [0.5, 1], [0.5, 1, 2]]
+    controls1 = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0]]
+    controls2 = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0.5, 0, 0], [-0.5, 0, 0], [0, 0.5, 0], [0, -0.5, 0]]
+    controls3 = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0.5, 0, 0], [-0.5, 0, 0], [0, 0.5, 0], [0, -0.5, 0], [0.25, 0, 0], [-0.25, 0, 0], [0, 0.25, 0], [0, -0.25, 0], [0.75, 0, 0], [-0.75, 0, 0], [0, 0.75, 0], [0, -0.75, 0]] # set of control
+    all_controls = []
+    all_controls.append(controls3)
+    #all_controls.append(controls2)
+    result_comp_time = np.zeros((len(all_controls),tot_it))
+    result_path_time = np.zeros((len(all_controls),tot_it))
+    for i, controls in enumerate(all_controls):
         for it in range(tot_it):
-            print "num_angles:", num_angle
+            print "num_controls:", i
             print "m:", m
             print "dt_ctl:", dt_ctl
             print "i : {}, it: {}".format(i,it)
-            controls = []
-            for j in range(num_angle):
-                controls.append([cos(2*pi/num_angle*j), sin(2*pi/num_angle*j), 0])
+            controls = all_controls[i]
             #controls = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0]]
             hovercraft = hovercraft_class(robot, start_config, m, I, dt, dt_vis, dt_ctl)
             hovercraft.setRobotPose(start_config[:3])
             time.sleep(0.1)
             #run kinodynamic rrt
             with env:
-                duration, traj, traj_time, full_len= kinodynamic_rrt(start_config, goal_config, e, bias, n, m, I, dt, dt_vis, dt_ctl, controls, env, robot, handles, False)
+                duration, traj, traj_time, full_len= kinodynamic_rrt(start_config, goal_config, e, bias, n, m, I, dt, dt_vis, dt_ctl, controls, env, robot, handles, True)
             print "time: ", duration
             print "traj_time", traj_time
             print "traj_len", full_len
@@ -63,11 +68,11 @@ if __name__ == "__main__":
             print result_comp_time
             print result_path_time.min(axis = 1), np.mean(result_path_time, axis=1),result_path_time.max(axis = 1)
             print result_comp_time.min(axis = 1), np.mean(result_comp_time, axis=1),result_comp_time.max(axis = 1)
-            #time.sleep(2)
+            time.sleep(2)
     #write result to file
-    f= open("data_direction_m_{}_ctl_{}_it{}_40.txt".format(m, dt_ctl,tot_it),"w+")
-    for i, num_angle in enumerate(num_angles):
-        f.write(str(num_angle)+" & ")
+    f= open("data_magnitude_m_{}_ctl_{}_it{}_75.txt".format(m, dt_ctl,tot_it),"w+")
+    for i, controls in enumerate(all_controls):
+        f.write(str(len(controls))+" & ")
         f.write("{:.2f}".format(result_path_time[i,:].min())+" & ")
         f.write("{:.2f}".format(np.mean(result_path_time[i,:]))+ " & ")
         f.write("{:.2f}".format(result_path_time[i,:].max())+" & ")
