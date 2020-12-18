@@ -42,10 +42,10 @@ class node:
                     node.handles.append(node.env.drawlinestrip(points =hstack([array((pt[0], pt[1], 0.05)), array((prev_pt[0], prev_pt[1], 0.05))]), linewidth=3.0,colors=array(((0,0,1),(0,0,1)))))
                     prev_pt = pt
                 if type == 'line':
-                    node.handles.append(node.env.drawlinestrip(points =hstack([array((pt[0], pt[1], 0.05)), array((prev_pt[0], prev_pt[1], 0.05))]), linewidth=3.0,colors=array(((0,0,0),(0,0,0)))))
+                    node.handles.append(node.env.drawlinestrip(points =hstack([array((pt[0], pt[1], 0.05)), array((prev_pt[0], prev_pt[1], 0.05))]), linewidth=4.0,colors=array(((0,0,0),(0,0,0)))))
                     prev_pt = pt
 
-        node.handles.append(node.env.plot3(points=array((self.x[0], self.x[1], 0.05)), pointsize=3.0, colors=array(((1,0,0,0.2)))))
+        #node.handles.append(node.env.plot3(points=array((self.x[0], self.x[1], 0.05)), pointsize=3.0, colors=array(((1,0,0,0.2)))))
     # compute next state of current node given control
     # control is list or numpy array
     # return none when robot collides on the way of cur->next
@@ -93,6 +93,8 @@ class node:
         if self.parent == None:
             print "root node, no trajectory from parent"
             return
+        #path length of the trajectory from current to parent node
+        self.path_len = 0
         px = self.parent.x[0]
         py = self.parent.x[1]
         theta = self.parent.x[2]
@@ -122,6 +124,7 @@ class node:
             vy = vy + ay * dt
             omega = omega + beta * dt
             traj.append(np.array([px, py, theta]))
+            self.path_len += sqrt((vx)**2+(vy)**2)*dt
         self.traj = traj
 
 class hovercraft_class:
@@ -229,6 +232,9 @@ def extend(near, rand):
 
 def full_path(root, cur_node, plot = True):
     traj = []
+    #full path length
+    path_full_len= 0
+    #number of control time step for the full path
     len = 0
     while True:
         len = len + 1
@@ -236,10 +242,12 @@ def full_path(root, cur_node, plot = True):
             cur_node.comp_traj()
         if plot is True:
             cur_node.plot_node_traj(type = 'line')
+        path_full_len += cur_node.path_len
         traj = cur_node.traj + traj
         cur_node = cur_node.parent
         if cur_node.parent == root:
             node.traj_time = len * node.dt_ctl
+            node.path_len = path_full_len
             break
     return traj
 
@@ -281,7 +289,7 @@ def kinodynamic_rrt(start_config, goal_config, e, bias, n,  m, I, dt, dt_vis, dt
             if dist2goal < e:
                 print "goal reached"
                 end = time.time()
-                return end-start, full_path(root, new), node.traj_time
+                return end-start, full_path(root, new), node.traj_time, node.path_len
 
 
 
