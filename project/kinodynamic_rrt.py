@@ -287,6 +287,9 @@ def kinodynamic_rrt(start_config, goal_config, e, bias, n,  m, I, dt, dt_vis, dt
                 min_dist2goal = dist2goal
                 #print "iteration: ", k,  " min_dist2goal: ", min_dist2goal
             if dist2goal < e:
+                node.handles = []
+                handles = []
+                time.sleep(0.5)
                 print "goal reached"
                 end = time.time()
                 return end-start, full_path(root, new), node.traj_time, node.path_len

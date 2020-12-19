@@ -19,18 +19,18 @@ if __name__ == "__main__":
     #set variables
     handles = []
     start_config = np.array([-4.5, -4.5, 0, 0, 0, 0])
-    goal_config = np.array([4.5, 4.5, 0.8,  0, 0, 0])
+    goal_config = np.array([4.5, 4.5, 0, 0, 0, 0])
     e = 0.4
     bias = 0.1 # probability of selecting goal as the random config
     n = 5000 # total number of iteration
-    m = 8 # mass of hovercraft
-    I = 8 # moment of inertia of hovercraft
+    m = 5 # mass of hovercraft
+    I = 5 # moment of inertia of hovercraft
     dt = 0.01 #time increment during numerical integration
-    dt_vis = 0.01 # time increment during visualization
+    dt_vis = 0.05 # time increment during visualization
     dt_ctl = 1.2 # time gap of adjacent control 0.8, 2.4
     #controls = [[1, 0, 0],[0, 0, 1]]
-    controls = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0]]
-    #controls = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0.5, 0, 0], [-0.5, 0, 0], [0, 0.5, 0], [0, -0.5, 0]] # set of control
+    #controls = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0]]
+    controls = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0.5, 0, 0], [-0.5, 0, 0], [0, 0.5, 0], [0, -0.5, 0]] # set of control
     #controls = [[2, 0, 0], [-2, 0, 0], [0, 2, 0], [0, -2, 0], [1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0.5, 0, 0], [-0.5, 0, 0], [0, 0.5, 0], [0, -0.5, 0]] # set of control
     #controls = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0.5, 0, 0], [-0.5, 0, 0], [0, 0.5, 0], [0, -0.5, 0], [0.25, 0, 0], [-0.25, 0, 0], [0, 0.25, 0], [0, -0.25, 0], [0.75, 0, 0], [-0.75, 0, 0], [0, 0.75, 0], [0, -0.75, 0]] # set of control
     #controls = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [1, 1, 0], [1, -1, 0], [-1, 1, 0], [-1, -1, 0]]
@@ -48,8 +48,6 @@ if __name__ == "__main__":
     print "time: ", duration
     print "traj_time", traj_time
     print "traj_len", full_len
-    time.sleep(1)
-    handles = []
     hovercraft.executeTraj(traj, 0.2)
 
 
